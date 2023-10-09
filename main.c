@@ -45,7 +45,7 @@
 
 #include "main.h"
 #define ENABLE_I2C 0
-#define ENABLE_SPI 1
+#define ENABLE_SPI 0
 
 int main(void)
 {
