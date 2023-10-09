@@ -25,6 +25,8 @@
  */
 cy_rslt_t LM75_init(void);
 
+void LM75_write_reg(uint8_t reg, uint8_t value);
+
 /** Read the temperature from LM75
  *
  * @param
