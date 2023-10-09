@@ -92,9 +92,8 @@ int main(void)
     printf("****************** \r\n\n");
 
 #if ENABLE_I2C
-	TCA9534_get_input_port();
-	TCA9534_set_configuration(0x00); 	// Set all pins as outputs
-	TCA9534_set_output_port(0x00); 		// Turn on all LEDs
+	LM75_write_reg(0x03, 0x00); 	// Set all pins as outputs
+	LM75_write_reg(0x01, 0xFF); 	// Turn on all LEDs
 
 #endif
 
@@ -104,7 +103,7 @@ int main(void)
     	Cy_SysLib_Delay(1000);
     	temp = LM75_get_temp();
     	printf("Temperature = %.2f\r\n",temp);
-    	TCA9534_set_output_port(led_mask);
+    	LM75_write_reg(0x01, led_mask);
 
     	led_mask = led_mask << 1;
     	if(led_mask == 0x80)
