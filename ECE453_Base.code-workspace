@@ -1,12 +1,9 @@
 {
 	"folders": [
-		{
-			"path": "."
-		},
         {
-            "path": "../mtb_shared"
+            "path": "."
         }
-	],
+    ],
     "settings": {
         //mtb//  If this project will be shared with multiple users, the
         //mtb//  modustoolbox.toolsPath property must be placed in user settings
