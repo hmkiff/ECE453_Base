@@ -45,7 +45,8 @@
 
 #include "main.h"
 #define ENABLE_I2C 0
-#define ENABLE_SPI 1
+#define ENABLE_SPI 1 //SPI disabled
+//#define ENABLE_IMU 0
 
 int main(void)
 {
@@ -112,7 +113,41 @@ int main(void)
     		led_mask = 0x01;
     	}
 #endif
+#if ENABLE_SPI
+		//write SPI CLI implementation here
+		//declare variables
+
+    	Cy_SysLib_Delay(1000);
+		uint16_t addr;
+		//cy_rslt_t   rslt;
+		uint8_t data;
+		
+		
+
+		//initialize variables
+		addr = 0xFFFF;
+		data = 0xA2;
+
+		//write to eeprom
+		eeprom_write_byte(addr, data); //this function automatically writes and read for us
+		
+		//read eeprom = 
+		eeprom_read_byte(addr, &data);
+		
+		eeprom_test() == CY_RSLT_SUCCESS; //set eeprom_test to SUCCESS
+
+		
+		
+
+			
+
+
+#endif
     }
+
+#if ENABLE_IMU
+	//display current orientation of imu
+#endif
 }
 
 
