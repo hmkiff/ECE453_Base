@@ -141,7 +141,7 @@ void print_result(cy_rslt_t result) {
     strcat(resultstr, "\n");
 
     printf(resultstr);
-    printf("Raw code: %li Module code: %li Type code: %i Code: %i\n", 
+    printf("Raw code: %li Module code: %i Type code: %i Code: %i\n", 
         result, module, type, code);
         
 }

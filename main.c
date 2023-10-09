@@ -44,8 +44,8 @@
 #include "cybsp.h"
 
 #include "main.h"
-#define ENABLE_I2C 0
-#define ENABLE_SPI 1
+#define ENABLE_I2C 1
+#define ENABLE_SPI 0
 
 int main(void)
 {
@@ -92,9 +92,9 @@ int main(void)
     printf("****************** \r\n\n");
 
 #if ENABLE_I2C
-	io_expander_get_input_port();
-	io_expander_set_configuration(0x00); 	// Set all pins as outputs
-	io_expander_set_output_port(0x00); 		// Turn on all LEDs
+	TCA9534_get_input_port();
+	TCA9534_set_configuration(0x00); 	// Set all pins as outputs
+	TCA9534_set_output_port(0x00); 		// Turn on all LEDs
 
 #endif
 
@@ -104,7 +104,7 @@ int main(void)
     	Cy_SysLib_Delay(1000);
     	temp = LM75_get_temp();
     	printf("Temperature = %.2f\r\n",temp);
-    	io_expander_set_output_port(led_mask);
+    	TCA9534_set_output_port(led_mask);
 
     	led_mask = led_mask << 1;
     	if(led_mask == 0x80)

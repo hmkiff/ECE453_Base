@@ -1,6 +1,6 @@
 #include "i2c.h"
 #include "console.h"
-#include "../debug/result_tools.h"
+#include "../debug-tools/result_tools.h"
 
 #define TCA9534_ADDR 0x01
 
