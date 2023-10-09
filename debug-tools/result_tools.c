@@ -128,6 +128,22 @@ void print_result(cy_rslt_t result) {
         strcpy(modulestr, "USB");
     } else if (module == CYHAL_RSLT_MODULE_WDT) {
         strcpy(modulestr, "WDT");
+    } else if (module == CY_RSLT_MODULE_ABSTRACTION_BLOCK_STORAGE) {
+        strcpy(modulestr, "Block store");
+    } else if (module == CY_RSLT_MODULE_ABSTRACTION_BSP) {
+        strcpy(modulestr, "Board support");
+    } else if (module == CY_RSLT_MODULE_ABSTRACTION_DATA_STREAMING) {
+        strcpy(modulestr, "Data streaming");
+    } else if (module == CY_RSLT_MODULE_ABSTRACTION_FS) {
+        strcpy(modulestr, "File system");
+    } else if (module == CY_RSLT_MODULE_ABSTRACTION_HAL) {
+        strcpy(modulestr, "HAL");
+    } else if (module == CY_RSLT_MODULE_ABSTRACTION_OS) {
+        strcpy(modulestr, "RTOS");
+    } else if (module == CY_RSLT_MODULE_ABSTRACTION_RESOURCE) {
+        strcpy(modulestr, "Resource abs.");
+    } else if (module == CY_RSLT_MODULE_DRIVER_SCB) {
+        strcpy(modulestr, "SCB");
     } else {
         strcpy(modulestr, "Unknown");
         strcpy(codestr, "Unknown code");
