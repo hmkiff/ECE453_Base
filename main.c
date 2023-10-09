@@ -43,23 +43,78 @@
 #include "cyhal.h"
 #include "cybsp.h"
 
+#include "main.h"
+#define ENABLE_I2C 0
+#define ENABLE_SPI 1
 
 int main(void)
 {
-    cy_rslt_t result;
+	float temp;
+	uint8_t led_mask = 0x01;
 
-    /* Initialize the device and board peripherals */
-    result = cybsp_init() ;
-    if (result != CY_RSLT_SUCCESS)
+    console_init();
+
+    printf("\x1b[2J\x1b[;H");
+
+    printf("******************\n\r");
+    printf("* ECE453 Dev Platform\n\r");
+
+    printf("* -- Initializing user push button\n\r");
+	push_button_init();
+
+    printf("* -- Initializing user LED\n\r");
+    leds_init();
+
+    printf("* -- Enabling Interrupts\n\r");
+    /* Enable global interrupts */
+    	__enable_irq();
+
+#if ENABLE_I2C
+    printf("* -- Initializing I2C Bus\n\r");
+    i2c_init();
+#endif
+
+#if ENABLE_SPI
+    printf("* -- Initializing SPI Bus\n\r");
+    if (spi_init() == CY_RSLT_SUCCESS)
     {
-        CY_ASSERT(0);
+		if(eeprom_cs_init() == CY_RSLT_SUCCESS)
+		{
+			if(eeprom_test() != CY_RSLT_SUCCESS)
+			{
+				// Something is wrong wit the EEPROM
+				while(1){};
+			}
+
+		}
     }
+#endif
+    printf("****************** \r\n\n");
 
-    __enable_irq();
+#if ENABLE_I2C
+	io_expander_get_input_port();
+	io_expander_set_configuration(0x00); 	// Set all pins as outputs
+	io_expander_set_output_port(0x00); 		// Turn on all LEDs
 
-    for (;;)
+#endif
+
+    while(1)
     {
+#if ENABLE_I2C
+    	Cy_SysLib_Delay(1000);
+    	temp = LM75_get_temp();
+    	printf("Temperature = %.2f\r\n",temp);
+    	io_expander_set_output_port(led_mask);
+
+    	led_mask = led_mask << 1;
+    	if(led_mask == 0x80)
+    	{
+    		led_mask = 0x01;
+    	}
+#endif
     }
 }
+
+
 
 /* [] END OF FILE */
