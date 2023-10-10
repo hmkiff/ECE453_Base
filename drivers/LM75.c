@@ -29,7 +29,7 @@ void LM75_write_reg(uint8_t reg, uint8_t value)
 							LM75_SUBORDINATE_ADDR,		// I2C Address
 							write_buffer, 					// Array of data to write
 							2, 								// Number of bytes to write
-							1000, 							
+							10000, 							// Wait 10s
 							true);							// Generate Stop Condition
 
 	if (result != CY_RSLT_SUCCESS) {
@@ -50,9 +50,7 @@ static int16_t LM75_read_reg(uint8_t reg)
 	int16_t return_value;
 
 	write_buffer[0] = reg;
-
-	/* ADD CODE */
-	/* Use cyhal_i2c_master_write to write the required data to the device. */
+	
 	/* Send the register address, do not generate a stop condition.  This will result in */
 	/* a restart condition. */
 	cy_rslt_t result = cyhal_i2c_master_write(
@@ -60,13 +58,10 @@ static int16_t LM75_read_reg(uint8_t reg)
 							LM75_SUBORDINATE_ADDR,	// I2C Address
 							write_buffer, 					// Array of data to write
 							1, 								// Number of bytes to write
-							0, 								// Block until completed
-							false);
-	if (result == CY_RSLT_SUCCESS)							// Do NOT generate Stop Condition
-	{
+							10000, 							// Wait 10s
+							false);							// Do NOT generate Stop Condition
 
-		/* ADD CODE */
-		/* Use cyhal_i2c_master_read to read the required data from the device. */
+	if (result == CY_RSLT_SUCCESS) {
 		// The register address has already been set in the write above, so read a single byte
 		// of data.
 		cy_rslt_t result = cyhal_i2c_master_read(
@@ -74,7 +69,7 @@ static int16_t LM75_read_reg(uint8_t reg)
 								LM75_SUBORDINATE_ADDR,	// I2C Address
 								read_buffer, 					// Read Buffer
 								2 , 							// Number of bytes to read
-								0, 								// Block until completed
+								10000, 							// Wait 10s
 								true);
 		if (result == CY_RSLT_SUCCESS) 							// Generate Stop Condition
 		{

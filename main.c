@@ -44,8 +44,10 @@
 #include "cybsp.h"
 
 #include "main.h"
-#define ENABLE_I2C 1
 #define ENABLE_SPI 0
+#define ENABLE_I2C 1
+#define ENABLE_TEMP 0
+#define ENABLE_IO_EXPANDER 1
 
 int main(void)
 {
@@ -92,18 +94,26 @@ int main(void)
     printf("****************** \r\n\n");
 
 #if ENABLE_I2C
-	LM75_write_reg(0x03, 0x00); 	// Set all pins as outputs
-	LM75_write_reg(0x01, 0xFF); 	// Turn on all LEDs
-
+	printf("* -- Initializing I/O Expander\n\r");
+	#if ENABLE_IO_EXPANDER
+	io_expander_write_reg(0x03, 0x00); 	// Set all pins as outputs
+	io_expander_write_reg(0x01, 0xFF); 	// Turn on all LEDs
+	#endif
 #endif
 
     while(1)
     {
 #if ENABLE_I2C
     	Cy_SysLib_Delay(1000);
+
+		#if ENABLE_TEMP
     	temp = LM75_get_temp();
     	printf("Temperature = %.2f\r\n",temp);
-    	LM75_write_reg(0x01, led_mask);
+		#endif
+
+		#if ENABLE_IO_EXPANDER
+    	io_expander_write_reg(0x01, led_mask);
+		#endif
 
     	led_mask = led_mask << 1;
     	if(led_mask == 0x80)

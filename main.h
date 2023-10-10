@@ -13,6 +13,7 @@
 #include "drivers/console.h"
 #include "drivers/i2c.h"
 #include "drivers/eeprom.h"
+#include "drivers/io-expander.h"
 #include "drivers/LM75.h"
 
 #endif /* MAIN_H_ */
