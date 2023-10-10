@@ -144,6 +144,25 @@ void print_result(cy_rslt_t result) {
         strcpy(modulestr, "Resource abs.");
     } else if (module == CY_RSLT_MODULE_DRIVER_SCB) {
         strcpy(modulestr, "SCB");
+        if (result == CY_SCB_I2C_BAD_PARAM) {
+            strcpy(codestr, "Bad parameters");
+        } else if (result == CY_SCB_I2C_MASTER_NOT_READY) {
+            strcpy(codestr, "Monarch not ready");
+        } else if (result == CY_SCB_I2C_MASTER_MANUAL_TIMEOUT) {
+            strcpy(codestr, "Monarch manual timeout");
+        } else if (result == CY_SCB_I2C_MASTER_MANUAL_ADDR_NAK) {
+            strcpy(codestr, "Serf nack'd address");
+        } else if (result == CY_SCB_I2C_MASTER_MANUAL_NAK) {
+            strcpy(codestr, "Serf nack'd data");
+        } else if (result == CY_SCB_I2C_MASTER_MANUAL_ARB_LOST) {
+            strcpy(codestr, "Monarch lost arbitration");
+        } else if (result == CY_SCB_I2C_MASTER_MANUAL_BUS_ERR) {
+            strcpy(codestr, "Monarch bus error");
+        } else if (result == CY_SCB_I2C_MASTER_MANUAL_ABORT_START) {
+            strcpy(codestr, "Monarch transaction aborted");
+        } else {
+            strcpy(codestr, "Unknown error");
+        }
     } else {
         strcpy(modulestr, "Unknown");
         strcpy(codestr, "Unknown code");
