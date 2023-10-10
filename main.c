@@ -46,8 +46,8 @@
 #include "main.h"
 #define ENABLE_SPI 0
 #define ENABLE_I2C 1
-#define ENABLE_TEMP 0
-#define ENABLE_IO_EXPANDER 1
+#define ENABLE_TEMP 1
+#define ENABLE_IO_EXPANDER 0
 
 int main(void)
 {
@@ -94,8 +94,8 @@ int main(void)
     printf("****************** \r\n\n");
 
 #if ENABLE_I2C
-	printf("* -- Initializing I/O Expander\n\r");
 	#if ENABLE_IO_EXPANDER
+	printf("* -- Initializing I/O Expander\n\r");
 	io_expander_write_reg(0x03, 0x00); 	// Set all pins as outputs
 	io_expander_write_reg(0x01, 0xFF); 	// Turn on all LEDs
 	#endif

@@ -14,7 +14,7 @@
 #include "cyhal.h"
 #include "cybsp.h"
 
-#define LM75_SUBORDINATE_ADDR                 0x00
+#define LM75_SUBORDINATE_ADDR                 0b1001000
 
 #define LM75_TEMP_REG						  0x00
 
