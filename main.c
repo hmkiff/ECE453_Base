@@ -47,7 +47,7 @@
 #define ENABLE_SPI 0
 #define ENABLE_I2C 1
 #define ENABLE_TEMP 1
-#define ENABLE_IO_EXPANDER 0
+#define ENABLE_IO_EXPANDER 1
 
 int main(void)
 {
@@ -115,11 +115,11 @@ int main(void)
     	io_expander_write_reg(0x01, led_mask);
 		#endif
 
-    	led_mask = led_mask << 1;
-    	if(led_mask == 0x80)
-    	{
+    	if(led_mask == 0x80) {
     		led_mask = 0x01;
-    	}
+    	} else {
+			led_mask = led_mask << 1;
+		}
 #endif
     }
 }
