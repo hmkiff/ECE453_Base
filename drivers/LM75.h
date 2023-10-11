@@ -14,7 +14,7 @@
 #include "cyhal.h"
 #include "cybsp.h"
 
-#define LM75_SUBORDINATE_ADDR                 0x4F
+#define LM75_SUBORDINATE_ADDR                 0b1001000
 
 #define LM75_TEMP_REG						  0x00
 
@@ -24,6 +24,8 @@
  *
  */
 cy_rslt_t LM75_init(void);
+
+void LM75_write_reg(uint8_t reg, uint8_t value);
 
 /** Read the temperature from LM75
  *
