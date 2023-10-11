@@ -39,11 +39,16 @@
 * indemnify Cypress against all liability.
 *******************************************************************************/
 
+#include <stdlib.h>
+#include <math.h>
+
 #include "cy_pdl.h"
 #include "cyhal.h"
 #include "cybsp.h"
 
 #include "main.h"
+
+// Enables
 #define ENABLE_SPI 0
 #define ENABLE_I2C 1
 #define ENABLE_TEMP 1
@@ -52,7 +57,7 @@
 int main(void)
 {
 	float temp;
-	uint8_t led_mask = 0x01;
+	uint8_t led_mask = 0x00;
 
     console_init();
 
@@ -74,6 +79,11 @@ int main(void)
 #if ENABLE_I2C
     printf("* -- Initializing I2C Bus\n\r");
     i2c_init();
+	#if ENABLE_IO_EXPANDER
+		printf("* -- Initializing I/O Expander\n\r");
+		io_expander_write_reg(0x03, 0x00); 	// Set all pins as outputs
+		io_expander_write_reg(0x01, 0xFF); 	// Turn on all LEDs
+	#endif
 #endif
 
 #if ENABLE_SPI
@@ -91,36 +101,56 @@ int main(void)
 		}
     }
 #endif
-    printf("****************** \r\n\n");
 
-#if ENABLE_I2C
-	#if ENABLE_IO_EXPANDER
-	printf("* -- Initializing I/O Expander\n\r");
-	io_expander_write_reg(0x03, 0x00); 	// Set all pins as outputs
-	io_expander_write_reg(0x01, 0xFF); 	// Turn on all LEDs
-	#endif
-#endif
+printf("****************** \r\n\n");
 
     while(1)
     {
-#if ENABLE_I2C
     	Cy_SysLib_Delay(1000);
 
-		#if ENABLE_TEMP
-    	temp = LM75_get_temp();
-    	printf("Temperature = %.2f\r\n",temp);
-		#endif
-
-		#if ENABLE_IO_EXPANDER
-    	io_expander_write_reg(0x01, led_mask);
-		#endif
-
-    	if(led_mask == 0x80) {
-    		led_mask = 0x01;
-    	} else {
-			led_mask = led_mask << 1;
+		// Command conditions
+		if (ALERT_CONSOLE_RX) {
+			if (strncmp(pcInputString, "temp", 4) == 0) {
+				#if ENABLE_TEMP
+					temp = LM75_get_temp();
+					printf("CMD Result: Temperature = %.2f\r\n", temp);
+				#else
+					printf("CMD fail: Temperature not enabled.\r\n");
+				#endif
+			} else if (strncmp(pcInputString, "led on ", 7) == 0) {
+				#if ENABLE_IO_EXPANDER
+					char led_num_str = pcInputString[7];
+					int led_num = atoi(&led_num_str);
+					if ((led_num >= 0) && (led_num <= 7)) {
+						printf("CMD result: Turning LED %i on\r\n", led_num);
+						led_mask = led_mask | (uint8_t)pow(2, led_num);
+						io_expander_write_reg(0x01, led_mask);
+					} else {
+						printf("CMD fail: No LED at %i\r\n", led_num);
+					}
+				#else
+					printf("CMD fail: io expander not enabled.\r\n");
+				#endif
+			} else if (strncmp(pcInputString, "led off ", 8) == 0) {
+				#if ENABLE_IO_EXPANDER
+					char led_num_str = pcInputString[8];
+					int led_num = atoi(&led_num_str);
+					if ((led_num >= 0) && (led_num <= 7)) {
+						printf("CMD result: Turning LED %i off\r\n", led_num);
+						led_mask = led_mask & ~(uint8_t)pow(2, led_num);
+						io_expander_write_reg(0x01, led_mask);
+					} else {
+						printf("CMD fail: No LED at %i\r\n", led_num);
+					}
+				#else
+					printf("CMD fail: io expander not enabled.\r\n");
+				#endif
+			} else {
+				printf("CMD fail: command not recognized.\r\n");
+			}
+			cInputIndex = 0;
+			ALERT_CONSOLE_RX = false;
 		}
-#endif
     }
 }
 
