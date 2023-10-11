@@ -118,32 +118,40 @@ printf("****************** \r\n\n");
 					printf("CMD fail: Temperature not enabled.\r\n");
 				#endif
 			} else if (strncmp(pcInputString, "led on ", 7) == 0) {
-				#if ENABLE_IO_EXPANDER
-					char led_num_str = pcInputString[7];
-					int led_num = atoi(&led_num_str);
-					if ((led_num >= 0) && (led_num <= 7)) {
-						printf("CMD result: Turning LED %i on\r\n", led_num);
-						led_mask = led_mask | (uint8_t)pow(2, led_num);
-						io_expander_write_reg(0x01, led_mask);
-					} else {
-						printf("CMD fail: No LED at %i\r\n", led_num);
-					}
+				#if ENABLE_I2C
+					#if ENABLE_IO_EXPANDER
+						char led_num_str = pcInputString[7];
+						int led_num = atoi(&led_num_str);
+						if ((led_num >= 0) && (led_num <= 7)) {
+							printf("CMD result: Turning LED %i on\r\n", led_num);
+							led_mask = led_mask | (uint8_t)pow(2, led_num);
+							io_expander_write_reg(0x01, led_mask);
+						} else {
+							printf("CMD fail: No LED at %i\r\n", led_num);
+						}
+					#else
+						printf("CMD fail: io expander not enabled.\r\n");
+					#endif
 				#else
-					printf("CMD fail: io expander not enabled.\r\n");
+					printf("CMD fail: I2C not enabled.\r\n");
 				#endif
 			} else if (strncmp(pcInputString, "led off ", 8) == 0) {
-				#if ENABLE_IO_EXPANDER
-					char led_num_str = pcInputString[8];
-					int led_num = atoi(&led_num_str);
-					if ((led_num >= 0) && (led_num <= 7)) {
-						printf("CMD result: Turning LED %i off\r\n", led_num);
-						led_mask = led_mask & ~(uint8_t)pow(2, led_num);
-						io_expander_write_reg(0x01, led_mask);
-					} else {
-						printf("CMD fail: No LED at %i\r\n", led_num);
-					}
+				#if ENABLE_I2C
+					#if ENABLE_IO_EXPANDER
+						char led_num_str = pcInputString[8];
+						int led_num = atoi(&led_num_str);
+						if ((led_num >= 0) && (led_num <= 7)) {
+							printf("CMD result: Turning LED %i off\r\n", led_num);
+							led_mask = led_mask & ~(uint8_t)pow(2, led_num);
+							io_expander_write_reg(0x01, led_mask);
+						} else {
+							printf("CMD fail: No LED at %i\r\n", led_num);
+						}
+					#else
+						printf("CMD fail: io expander not enabled.\r\n");
+					#endif
 				#else
-					printf("CMD fail: io expander not enabled.\r\n");
+					printf("CMD fail: I2C not enabled.\r\n");
 				#endif
 			} else {
 				printf("CMD fail: command not recognized.\r\n");
