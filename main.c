@@ -145,9 +145,9 @@ int main(void)
 #endif
     }
 
-#if ENABLE_IMU
+//#if ENABLE_IMU
 	//display current orientation of imu
-#endif
+//#endif
 }
 
 
