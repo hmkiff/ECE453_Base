@@ -48,11 +48,14 @@
 
 #include "main.h"
 
-// Enables
+// Enables --------------------
 #define ENABLE_SPI 0
+// I2C device enables
 #define ENABLE_I2C 1
-#define ENABLE_TEMP 1
-#define ENABLE_IO_EXPANDER 1
+#define ENABLE_TEMP 0
+#define ENABLE_IO_EXPANDER 0
+#define ENABLE_IR_MUX 1
+// ----------------------------
 
 int main(void)
 {
@@ -76,13 +79,17 @@ int main(void)
     /* Enable global interrupts */
     	__enable_irq();
 
+// I2C-based devices init
 #if ENABLE_I2C
     printf("* -- Initializing I2C Bus\n\r");
     i2c_init();
 	#if ENABLE_IO_EXPANDER
 		printf("* -- Initializing I/O Expander\n\r");
-		io_expander_write_reg(0x03, 0x00); 	// Set all pins as outputs
-		io_expander_write_reg(0x01, 0xFF); 	// Turn on all LEDs
+		io_expander_set_all_out();
+	#endif
+	#if ENABLE_IR_MUX
+		printf("* -- Initializing IR Mux\n\r");
+		//ir_mux_set_chnl(1);
 	#endif
 #endif
 
@@ -102,7 +109,8 @@ int main(void)
     }
 #endif
 
-printf("****************** \r\n\n");
+
+printf("Initialization complete.\r\n\n");
 
     while(1)
     {
@@ -144,8 +152,31 @@ printf("****************** \r\n\n");
 							printf("CMD result: Turning LED %i off\r\n", led_num);
 							led_mask = led_mask & ~(uint8_t)pow(2, led_num);
 							io_expander_write_reg(0x01, led_mask);
+							printf("CMD result: LED %i turned off.\r\n", led_num);
 						} else {
 							printf("CMD fail: No LED at %i\r\n", led_num);
+						}
+					#else
+						printf("CMD fail: io expander not enabled.\r\n");
+					#endif
+				#else
+					printf("CMD fail: I2C not enabled.\r\n");
+				#endif
+			} else if (strncmp(pcInputString, "IR sel ", 7) == 0) {
+				#if ENABLE_I2C
+					#if ENABLE_IR_MUX
+						char ch_num_str = pcInputString[7];
+						int ch_num = atoi(&ch_num_str);
+						if ((ch_num >= 1) && (ch_num <= 4)) {
+							cy_rslt_t result = ir_mux_set_chnl(ch_num);
+							if (result != CY_RSLT_SUCCESS) {
+								print_result(result);
+								printf("CMD fail: Couldn't switch IR, see error above\r\n");
+							} else {
+								printf("CMD result: IR swicthed to ch. %i\r\n", ch_num);
+							}
+						} else {
+							printf("CMD fail: No IR at %i\r\n", ch_num);
 						}
 					#else
 						printf("CMD fail: io expander not enabled.\r\n");

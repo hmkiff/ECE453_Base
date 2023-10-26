@@ -13,9 +13,10 @@
 #include "cybsp.h"
 
 /* Macros */
-#define PIN_MCU_SCL			P10_0
-#define PIN_MCU_SDA			P10_1
+#define PIN_MCU_SCL			 P10_0
+#define PIN_MCU_SDA			 P10_1
 #define I2C_MASTER_FREQUENCY 100000u
+#define I2C_TIMEOUT          2000
 
 /* Public Global Variables */
 extern cyhal_i2c_t i2c_master_obj;
