@@ -5,7 +5,7 @@
  *      Author: Harry Kiffel
  */
 
-#include "motor.h"
+#include "motor_functions.h"
 
 bool DIR = 0;	// Direction of STEP, 0: Left, 1: Right
 cy_rslt_t   rslt;

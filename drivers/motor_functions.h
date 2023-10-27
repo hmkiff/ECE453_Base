@@ -5,8 +5,8 @@
  *      Author: Harry Kiffel
  */
 
-#ifndef MOTOR_H_
-#define MOTOR_H_
+#ifndef MOTOR_FUNCTIONS_H_
+#define MOTOR_FUNCTIONS_H_
 
 #include <stdlib.h>
 #include <stdio.h>
