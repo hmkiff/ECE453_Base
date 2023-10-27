@@ -12,14 +12,130 @@ cy_rslt_t   rslt;
 cyhal_pwm_t step_pwm_obj;
 cyhal_pwm_t servo_pwm_obj;
 
+// drive motor pwms
+cyhal_pwm_t drive1A_pwm_obj;
+cyhal_pwm_t drive2A_pwm_obj;
+cyhal_pwm_t drive1B_pwm_obj;
+cyhal_pwm_t drive2B_pwm_obj;
+
+
+
+	// stop signal briefly before changing it
+	rslt = cyhal_pwm_stop(&drive1A_pwm_obj);
+	// Start the PWM output
+    rslt = cyhal_pwm_start(&drive1A_pwm_obj);
+
+// Drive motor functions
+
+void drive_motor_init(void)
+{
+	// init drive motor A pwms
+	cyhal_pwm_init( &drive1A_pwm_obj, PIN_MOTOR_1A, NULL);
+	cyhal_pwm_init( &drive2A_pwm_obj, PIN_MOTOR_2A, NULL);
+	// init drive motor B pwms
+	cyhal_pwm_init( &drive1B_pwm_obj, PIN_MOTOR_1B, NULL);
+	cyhal_pwm_init( &drive2B_pwm_obj, PIN_MOTOR_2B, NULL);
+
+	// Set a duty cycle of 0% (coast) and frequency of 20kHz
+	// motorA
+    cyhal_pwm_set_duty_cycle(&drive1A_pwm_obj, 0, DRV_PWM_FREQ);
+	cyhal_pwm_set_duty_cycle(&drive2A_pwm_obj, 0, DRV_PWM_FREQ);
+	// motorB
+	cyhal_pwm_set_duty_cycle(&drive1B_pwm_obj, 0, DRV_PWM_FREQ);
+	cyhal_pwm_set_duty_cycle(&drive2B_pwm_obj, 0, DRV_PWM_FREQ);
+
+}
+
+void set_drive_motor_signal(MOTOR *motor, int signal, int duty)
+{
+	// obtain reference to motor's pwm signal.
+	int signal_index = signal - 1;
+	cyhal_pwm_t * drive_pwm_obj = motor->motor_pwm[signal_index];
+
+	// stop signal briefly before changing it
+	cyhal_pwm_stop(&drive_pwm_obj);
+
+	// set duty cycle to duty
+	cyhal_pwm_set_duty_cycle(&drive_pwm_obj, duty, DRV_PWM_FREQ);
+	
+	// Start the PWM output
+    cyhal_pwm_start(&drive_pwm_obj);
+}
+
+void set_drive_motor_direction(MOTOR *motor, int direction)
+{
+	// direction -1 reverse, 0 brake, 1 forward
+	if(direction < 0){
+		motor->direction = -1;
+		set_drive_motor_signal(&motor, motor->motor_pwm[0], motor->duty);
+		set_drive_motor_signal(&motor, motor->motor_pwm[1], 100);
+	}
+	else if(direction == 0){
+		motor->direction = 0;
+		set_drive_motor_signal(&motor, motor->motor_pwm[0], 100);
+		set_drive_motor_signal(&motor, motor->motor_pwm[1], 100);
+	}
+	else if(direction > 0){
+		motor->direction = 1;
+		set_drive_motor_signal(&motor, motor->motor_pwm[0], 100);
+		set_drive_motor_signal(&motor, motor->motor_pwm[1], motor->duty);
+	}
+}
+
+void set_drive_motor_speed(MOTOR *motor, int duty)
+{
+	direction = motor->direction;
+	if(direction < 0){
+		set_drive_motor_signal(&motor, motor->motor_pwm[0], duty);
+		set_drive_motor_signal(&motor, motor->motor_pwm[1], 100);
+	}
+	else if(direction > 0){
+		set_drive_motor_signal(&motor, motor->motor_pwm[0], 100);
+		set_drive_motor_signal(&motor, motor->motor_pwm[1], duty);
+	}
+	else{
+		set_drive_motor_signal(&motor, motor->motor_pwm[0], 100);
+		set_drive_motor_signal(&motor, motor->motor_pwm[1], 100);
+	}
+}
+
+void set_drive_motor_speed_rpm(MOTOR *motor, int speed_rpm)
+{
+	int duty_percent;
+	if(speed_rpm > 200) duty_percent = 100;
+	else if(speed_rpm < 0) duty_percent = 0;
+	set_drive_motor_speed(&motor, duty_percent);
+
+}
+
+void set_drive_move_direction(int move_dir)
+{
+}
+
+void set_drive_turn_direction(int turn_dir)
+{
+}
+
+void set_drive_speed(int duty)
+{
+}
+
+void set_drive_speed_rpm(int speed_rpm)
+{
+}
+
+
+
+
+
+// Generic functions
+
 //void motorfree(){
 //
 //	cyhal_pwm_free(&step_pwm_obj);
 //	cyhal_pwm_free(&servo_pwm_obj);
 //
 //}
-
-
 /*****************************************************
 * Function Name: motor_io_init
 ******************************************************
