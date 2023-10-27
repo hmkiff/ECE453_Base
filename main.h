@@ -16,5 +16,6 @@
 #include "drivers/io-expander.h"
 #include "drivers/LM75.h"
 #include "drivers/motor.h"
+#include "drivers/ultrasonic.h"
 
 #endif /* MAIN_H_ */

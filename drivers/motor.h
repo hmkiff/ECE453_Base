@@ -21,7 +21,8 @@
 #define PIN_MOTOR_PWM  P5_2
 
 // Exported Global Variables
-
+extern cyhal_pwm_t step_pwm_obj;
+extern cyhal_pwm_t servo_pwm_obj;
 
 /* Public Function API */
 void motor_init(void);
@@ -29,5 +30,6 @@ void motor_init(void);
 void motor_set_pwm(int angle);
 void motor_step_speed(int speed);
 void motor_set_dir(bool direction);
+void motor_free(void);
 
 #endif
