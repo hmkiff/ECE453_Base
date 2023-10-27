@@ -15,5 +15,6 @@
 #include "drivers/eeprom.h"
 #include "drivers/io-expander.h"
 #include "drivers/LM75.h"
+#include "drivers/motor.h"
 
 #endif /* MAIN_H_ */
