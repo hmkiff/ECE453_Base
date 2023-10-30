@@ -18,12 +18,8 @@ cyhal_pwm_t drive2A_pwm_obj;
 cyhal_pwm_t drive1B_pwm_obj;
 cyhal_pwm_t drive2B_pwm_obj;
 
-
-
-	// stop signal briefly before changing it
-	rslt = cyhal_pwm_stop(&drive1A_pwm_obj);
-	// Start the PWM output
-    rslt = cyhal_pwm_start(&drive1A_pwm_obj);
+struct MOTOR motorA = {.name = 'a', .motor_pwm[0] = &drive1A_pwm_obj, .motor_pwm[1] = &drive2A_pwm_obj, .duty = 0};
+struct MOTOR motorB = {.name = 'b', .motor_pwm[0] = &drive1B_pwm_obj, .motor_pwm[1] = &drive2B_pwm_obj, .duty = 0};
 
 // Drive motor functions
 
@@ -46,74 +42,102 @@ void drive_motor_init(void)
 
 }
 
-void set_drive_motor_signal(MOTOR *motor, int signal, int duty)
+void set_drive_motor_signal(struct MOTOR *motor, int signal, int duty)
 {
 	// obtain reference to motor's pwm signal.
 	int signal_index = signal - 1;
 	cyhal_pwm_t * drive_pwm_obj = motor->motor_pwm[signal_index];
 
 	// stop signal briefly before changing it
-	cyhal_pwm_stop(&drive_pwm_obj);
+	cyhal_pwm_stop(drive_pwm_obj);
 
 	// set duty cycle to duty
-	cyhal_pwm_set_duty_cycle(&drive_pwm_obj, duty, DRV_PWM_FREQ);
+	cyhal_pwm_set_duty_cycle(drive_pwm_obj, duty, DRV_PWM_FREQ);
 	
 	// Start the PWM output
-    cyhal_pwm_start(&drive_pwm_obj);
+    cyhal_pwm_start(drive_pwm_obj);
 }
 
-void set_drive_motor_direction(MOTOR *motor, int direction)
+void set_drive_motor_direction(struct MOTOR *motor, int direction)
 {
-	// direction -1 reverse, 0 brake, 1 forward
-	if(direction < 0){
+	// direction -1 clockwise, 0 brake, 1 counter-clockwise
+	if(direction < 0){			// clockwise
 		motor->direction = -1;
-		set_drive_motor_signal(&motor, motor->motor_pwm[0], motor->duty);
-		set_drive_motor_signal(&motor, motor->motor_pwm[1], 100);
+		set_drive_motor_signal(motor, 1, motor->duty);
+		set_drive_motor_signal(motor, 2, 100);
 	}
-	else if(direction == 0){
-		motor->direction = 0;
-		set_drive_motor_signal(&motor, motor->motor_pwm[0], 100);
-		set_drive_motor_signal(&motor, motor->motor_pwm[1], 100);
-	}
-	else if(direction > 0){
+	else if(direction > 0){		// counter-clockwise
 		motor->direction = 1;
-		set_drive_motor_signal(&motor, motor->motor_pwm[0], 100);
-		set_drive_motor_signal(&motor, motor->motor_pwm[1], motor->duty);
-	}
-}
-
-void set_drive_motor_speed(MOTOR *motor, int duty)
-{
-	direction = motor->direction;
-	if(direction < 0){
-		set_drive_motor_signal(&motor, motor->motor_pwm[0], duty);
-		set_drive_motor_signal(&motor, motor->motor_pwm[1], 100);
-	}
-	else if(direction > 0){
-		set_drive_motor_signal(&motor, motor->motor_pwm[0], 100);
-		set_drive_motor_signal(&motor, motor->motor_pwm[1], duty);
+		set_drive_motor_signal(motor, 1, 100);
+		set_drive_motor_signal(motor, 2, motor->duty);
 	}
 	else{
-		set_drive_motor_signal(&motor, motor->motor_pwm[0], 100);
-		set_drive_motor_signal(&motor, motor->motor_pwm[1], 100);
+		motor->direction = 0;	// powered brake
+		set_drive_motor_signal(motor, 1, 100);
+		set_drive_motor_signal(motor, 2, 100);
+	}
+
+}
+
+void set_drive_motor_speed(struct MOTOR *motor, int duty)
+{
+	int direction = motor->direction;
+	if(direction < 0){		// clockwise
+		set_drive_motor_signal(motor, 1, duty);
+		set_drive_motor_signal(motor, 2, 100);
+	}
+	else if(direction > 0){	// counter-clockwise
+		set_drive_motor_signal(motor, 1, 100);
+		set_drive_motor_signal(motor, 2, duty);
+	}
+	else{					// powered brake
+		set_drive_motor_signal(motor, 1, 100);
+		set_drive_motor_signal(motor, 2, 100);
 	}
 }
 
-void set_drive_motor_speed_rpm(MOTOR *motor, int speed_rpm)
+void set_drive_motor_speed_rpm(struct MOTOR *motor, int speed_rpm)
 {
-	int duty_percent;
+	int duty_percent = (speed_rpm * 100) / MAX_RPM;
 	if(speed_rpm > 200) duty_percent = 100;
 	else if(speed_rpm < 0) duty_percent = 0;
-	set_drive_motor_speed(&motor, duty_percent);
+	set_drive_motor_speed(motor, duty_percent);
 
 }
 
 void set_drive_move_direction(int move_dir)
 {
+	// -1: reverse, 0: brake, 1: forward
+	if(move_dir < 0){
+		set_drive_motor_direction(&motorA, -1);
+		set_drive_motor_direction(&motorB,  1);
+	}
+	if(move_dir > 0){
+		set_drive_motor_direction(&motorA,  1);
+		set_drive_motor_direction(&motorB, -1);
+	}
+	else{
+		set_drive_motor_direction(&motorA, 0);
+		set_drive_motor_direction(&motorB, 0);
+	}
 }
 
 void set_drive_turn_direction(int turn_dir)
-{
+{	
+	// -1: left, 0: straight, 1: right
+	if(turn_dir < 0){
+		set_drive_motor_direction(&motorA, -1);
+		set_drive_motor_direction(&motorB,  1);
+	}
+	if(turn_dir > 0){
+		set_drive_motor_direction(&motorA,  1);
+		set_drive_motor_direction(&motorB, -1);
+	}
+	else{
+		set_drive_motor_direction(&motorA, 0);
+		set_drive_motor_direction(&motorB, 0);
+	}
+
 }
 
 void set_drive_speed(int duty)

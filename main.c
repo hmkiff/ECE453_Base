@@ -53,7 +53,7 @@
 #define ENABLE_SPI 0
 #define ENABLE_TEMP 0
 #define ENABLE_IO_EXPANDER 0
-#define ENABLE_MOTOR 0
+#define ENABLE_MOTOR 1
 #define ENABLE_ULTRASONIC 1
 
 int main(void)
@@ -106,7 +106,7 @@ int main(void)
 
 #if ENABLE_MOTOR
     printf("* -- Initializing Motor Functions\n\r");
-    motor_init();
+    drive_motor_init();
 #endif
 
 #if ENABLE_ULTRASONIC
@@ -187,8 +187,8 @@ printf("****************** \r\n\n");
 			} else if (strncmp(pcInputString, "distance ", 9) == 0) {
 				//int servo_angle = atoi(&pcInputString[9]);
 				printf("CMD result: Read Distance measurements.\r\n");
-				uint32_t echodist1;
-				uint32_t echodist2;
+				// uint32_t echodist1;
+				// uint32_t echodist2;
 				printf("ECHO 1: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO1));
 				printf("ECHO 2: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO2));
 			} else {
