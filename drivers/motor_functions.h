@@ -16,10 +16,10 @@
 #include "cybsp.h"
 
 // Pin definitions for drive motors
-#define PIN_MOTOR_1A    P10_6
-#define PIN_MOTOR_2A    P10_4
-#define PIN_MOTOR_1B    P10_0
-#define PIN_MOTOR_2B    P9_4
+#define PIN_MOTOR_1A    P10_1 // P10_6
+#define PIN_MOTOR_2A    P10_0 // P10_4
+#define PIN_MOTOR_1B    P10_2 // P10_0
+#define PIN_MOTOR_2B    P10_3 // P9_4
 
 // Drive Motor PWM Frequency
 #define DRV_PWM_FREQ 200000
