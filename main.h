@@ -17,6 +17,7 @@
 #include "drivers/eeprom.h"
 #include "drivers/io-expander.h"
 #include "drivers/LM75.h"
+#include "drivers/VL53L3CX_API_1.2.8/vl53lx_api.h"
 
 // Debug
 #include "debug-tools/result_tools.h"

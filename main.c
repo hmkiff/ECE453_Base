@@ -57,11 +57,7 @@
 #define ENABLE_IR_MUX 1
 // ----------------------------
 
-int main(void)
-{
-	float temp;
-	uint8_t led_mask = 0x00;
-
+int main(void) {
     console_init();
 
     printf("\x1b[2J\x1b[;H");
@@ -83,13 +79,28 @@ int main(void)
 #if ENABLE_I2C
     printf("* -- Initializing I2C Bus\n\r");
     i2c_init();
+	#if ENABLE_TEMP
+		float temp;
+	#endif
 	#if ENABLE_IO_EXPANDER
 		printf("* -- Initializing I/O Expander\n\r");
+		uint8_t led_mask = 0x00;
 		io_expander_set_all_out();
 	#endif
 	#if ENABLE_IR_MUX
 		printf("* -- Initializing IR Mux\n\r");
-		//ir_mux_set_chnl(1);
+		cy_rslt_t result = cyhal_gpio_init(IR_MUX_RST_PIN, CYHAL_GPIO_DIR_OUTPUT, CYHAL_GPIO_DRIVE_STRONG, 1);
+		if (result != CY_RSLT_SUCCESS) {
+			print_result(result);
+			printf("IR Error: Unable to initialize IR Mux, see above\n\r");
+			return -1;
+		}
+		result = ir_mux_set_chnl(2);
+		if (result != CY_RSLT_SUCCESS) {
+			print_result(result);
+			printf("IR Error: Unable to initialize IR Mux, see above\n\r");
+			return -1;
+		}
 	#endif
 #endif
 
@@ -108,7 +119,6 @@ int main(void)
 		}
     }
 #endif
-
 
 printf("Initialization complete.\r\n\n");
 
@@ -167,17 +177,25 @@ printf("Initialization complete.\r\n\n");
 					#if ENABLE_IR_MUX
 						char ch_num_str = pcInputString[7];
 						int ch_num = atoi(&ch_num_str);
-						if ((ch_num >= 1) && (ch_num <= 4)) {
-							cy_rslt_t result = ir_mux_set_chnl(ch_num);
-							if (result != CY_RSLT_SUCCESS) {
-								print_result(result);
-								printf("CMD fail: Couldn't switch IR, see error above\r\n");
-							} else {
-								printf("CMD result: IR swicthed to ch. %i\r\n", ch_num);
-							}
+						cy_rslt_t result = ir_mux_set_chnl(ch_num);
+						if (result != CY_RSLT_SUCCESS) {
+							print_result(result);
+							printf("CMD fail: Couldn't switch IR, see error above\r\n");
 						} else {
-							printf("CMD fail: No IR at %i\r\n", ch_num);
+							printf("CMD result: IR swicthed to ch. %i\r\n", ch_num);
 						}
+					#else
+						printf("CMD fail: io expander not enabled.\r\n");
+					#endif
+				#else
+					printf("CMD fail: I2C not enabled.\r\n");
+				#endif
+			} else if (strncmp(pcInputString, "IR read", 7) == 0) {
+				#if ENABLE_I2C
+					#if ENABLE_IR_MUX
+						printf("CMD result: init test begin\r\n");
+						VL53LX_Dev_t IR_dev_2;
+						VL53LX_DataInit(&IR_dev_2);
 					#else
 						printf("CMD fail: io expander not enabled.\r\n");
 					#endif

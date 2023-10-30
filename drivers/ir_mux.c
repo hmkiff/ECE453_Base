@@ -4,19 +4,19 @@
 
 cy_rslt_t ir_mux_set_chnl(uint8_t chnl) {
     switch (chnl) {
-        case 1: {
+        case 0: {
             chnl = 0b00000001;
             break;
         }
-        case 2: {
+        case 1: {
             chnl = 0b00000010;
             break;
         }
-        case 3: {
+        case 2: {
             chnl = 0b00000100;
             break;
         }
-        case 4: {
+        case 3: {
             chnl = 0b00001000;
             break;
         }

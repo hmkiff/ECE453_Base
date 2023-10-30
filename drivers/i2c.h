@@ -29,4 +29,6 @@ extern cyhal_i2c_t i2c_master_obj;
  */
 cy_rslt_t i2c_init(void);
 
+cy_rslt_t i2c_close(void);
+
 #endif /* I2C_H_ */
