@@ -191,6 +191,44 @@ printf("****************** \r\n\n");
 				// uint32_t echodist2;
 				printf("ECHO 1: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO1));
 				printf("ECHO 2: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO2));
+			} else if (strncmp(pcInputString, "drive_motors ", 13) == 0) {
+				char sig_str[2] = pcInputString[13];
+				if(strncmp(sig_str, '1a', 2) == 0){
+					printf("CMD result: Perform motor diagnostic .\r\n");
+					printf("Sending motor signal 1A, 20kHz for 30 seconds.\r\n");
+					set_drive_motor_signal(&motorA, 1, 50);
+					cyhal_system_delay_ms(300000);
+					printf("Ending motor signal 1A.\r\n");
+					set_drive_motor_signal(&motorA, 1, 0);
+				}
+				else if(strncmp(sig_str, '2a', 2) == 0){
+					printf("==============================================\r\n");
+					printf("Sending motor signal 2A, 20kHz for 30 seconds.\r\n");
+					set_drive_motor_signal(&motorA, 2, 50);
+					cyhal_system_delay_ms(300000);
+					printf("Ending motor signal 2A.\r\n");
+					set_drive_motor_signal(&motorA, 2, 0);
+				}
+				else if(strncmp(sig_str, '1b', 2) == 0){
+					printf("==============================================\r\n");
+					printf("Sending motor signal 1B, 20kHz for 30 seconds.\r\n");
+					set_drive_motor_signal(&motorB, 1, 50);
+					cyhal_system_delay_ms(300000);
+					printf("Ending motor signal 1B.\r\n");
+					set_drive_motor_signal(&motorB, 1, 0);
+				}
+				else if(strncmp(sig_str, '2b', 2) == 0){
+					printf("==============================================\r\n");
+					printf("Sending motor signal 2B, 20kHz for 30 seconds.\r\n");
+					set_drive_motor_signal(&motorB, 2, 50);
+					cyhal_system_delay_ms(300000);
+					printf("Ending motor signal 2B.\r\n");
+					set_drive_motor_signal(&motorB, 2, 0);
+				}
+				else{
+					printf("No motor signal specified. enter signal name after CMD. 1a, 2a, 1b, 2b");
+				}
+
 			} else {
 				printf("CMD fail: command not recognized.\r\n");
 			}
