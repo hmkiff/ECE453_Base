@@ -22,7 +22,7 @@
 #define PIN_MOTOR_2B    P10_3 // P9_4
 
 // Drive Motor PWM Frequency
-#define DRV_PWM_FREQ 200000
+#define DRV_PWM_FREQ 20
 #define MAX_RPM 200
 
 // Pin definitions for the ECE453 Staff Dev board
@@ -77,6 +77,9 @@ void set_drive_speed(int duty);
 
 // sets speed of both motors given rpm
 void set_drive_speed_rpm(int speed_rpm);
+
+// prints contents of MOTOR struct.
+void print_motor(struct MOTOR * motor);
 
 
 

@@ -18,8 +18,8 @@ cyhal_pwm_t drive2A_pwm_obj;
 cyhal_pwm_t drive1B_pwm_obj;
 cyhal_pwm_t drive2B_pwm_obj;
 
-struct MOTOR motorA = {.name = 'a', .motor_pwm[0] = &drive1A_pwm_obj, .motor_pwm[1] = &drive2A_pwm_obj, .duty = 0};
-struct MOTOR motorB = {.name = 'b', .motor_pwm[0] = &drive1B_pwm_obj, .motor_pwm[1] = &drive2B_pwm_obj, .duty = 0};
+struct MOTOR motorA = {.name = 'a', .motor_pwm[0] = &drive1A_pwm_obj, .motor_pwm[1] = &drive2A_pwm_obj, .duty = 0, .direction = 0};
+struct MOTOR motorB = {.name = 'b', .motor_pwm[0] = &drive1B_pwm_obj, .motor_pwm[1] = &drive2B_pwm_obj, .duty = 0, .direction = 0};
 
 // Drive motor functions
 
@@ -32,7 +32,7 @@ void drive_motor_init(void)
 	cyhal_pwm_init( &drive1B_pwm_obj, PIN_MOTOR_1B, NULL);
 	cyhal_pwm_init( &drive2B_pwm_obj, PIN_MOTOR_2B, NULL);
 
-	// Set a duty cycle of 0% (coast) and frequency of 20kHz
+	// Set a duty cycle of 0% (coast) and frequency of 20Hz
 	// motorA
     cyhal_pwm_set_duty_cycle(&drive1A_pwm_obj, 0, DRV_PWM_FREQ);
 	cyhal_pwm_set_duty_cycle(&drive2A_pwm_obj, 0, DRV_PWM_FREQ);
@@ -82,6 +82,7 @@ void set_drive_motor_direction(struct MOTOR *motor, int direction)
 void set_drive_motor_speed(struct MOTOR *motor, int duty)
 {
 	int direction = motor->direction;
+	motor->duty = duty;
 	if(direction < 0){		// clockwise
 		set_drive_motor_signal(motor, 1, duty);
 		set_drive_motor_signal(motor, 2, 100);
@@ -148,6 +149,13 @@ void set_drive_speed_rpm(int speed_rpm)
 {
 }
 
+void print_motor(struct MOTOR * motor){
+	printf("=================================\r\n");
+	printf("Motor Name: %s\r\n", motor->name);
+	printf("Motor Duty Cycle: %d\r\n", motor->duty);
+	printf("Motor Direction: %d\r\n", motor->direction);
+	printf("=================================\r\n");
+}
 
 
 
