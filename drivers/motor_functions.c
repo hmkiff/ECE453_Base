@@ -52,6 +52,7 @@ void set_drive_motor_signal(struct MOTOR *motor, int signal, int duty)
 	cyhal_pwm_stop(drive_pwm_obj);
 
 	// set duty cycle to duty
+	//motor->duty = duty;
 	cyhal_pwm_set_duty_cycle(drive_pwm_obj, duty, DRV_PWM_FREQ);
 	
 	// Start the PWM output
@@ -64,17 +65,17 @@ void set_drive_motor_direction(struct MOTOR *motor, int direction)
 	if(direction < 0){			// clockwise
 		motor->direction = -1;
 		set_drive_motor_signal(motor, 1, motor->duty);
-		set_drive_motor_signal(motor, 2, 100);
+		set_drive_motor_signal(motor, 2, 0);
 	}
 	else if(direction > 0){		// counter-clockwise
 		motor->direction = 1;
-		set_drive_motor_signal(motor, 1, 100);
+		set_drive_motor_signal(motor, 1, 0);
 		set_drive_motor_signal(motor, 2, motor->duty);
 	}
 	else{
 		motor->direction = 0;	// powered brake
-		set_drive_motor_signal(motor, 1, 100);
-		set_drive_motor_signal(motor, 2, 100);
+		set_drive_motor_signal(motor, 1, 0);
+		set_drive_motor_signal(motor, 2, 0);
 	}
 
 }
@@ -85,15 +86,15 @@ void set_drive_motor_speed(struct MOTOR *motor, int duty)
 	motor->duty = duty;
 	if(direction < 0){		// clockwise
 		set_drive_motor_signal(motor, 1, duty);
-		set_drive_motor_signal(motor, 2, 100);
+		set_drive_motor_signal(motor, 2, 0);
 	}
 	else if(direction > 0){	// counter-clockwise
-		set_drive_motor_signal(motor, 1, 100);
+		set_drive_motor_signal(motor, 1, 0);
 		set_drive_motor_signal(motor, 2, duty);
 	}
 	else{					// powered brake
-		set_drive_motor_signal(motor, 1, 100);
-		set_drive_motor_signal(motor, 2, 100);
+		set_drive_motor_signal(motor, 1, 0);
+		set_drive_motor_signal(motor, 2, 0);
 	}
 }
 
@@ -151,7 +152,7 @@ void set_drive_speed_rpm(int speed_rpm)
 
 void print_motor(struct MOTOR * motor){
 	printf("=================================\r\n");
-	printf("Motor Name: %s\r\n", motor->name);
+	printf("Motor Name: %c\r\n", motor->name);
 	printf("Motor Duty Cycle: %d\r\n", motor->duty);
 	printf("Motor Direction: %d\r\n", motor->direction);
 	printf("=================================\r\n");

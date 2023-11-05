@@ -191,155 +191,47 @@ printf("****************** \r\n\n");
 				// uint32_t echodist2;
 				printf("ECHO 1: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO1));
 				printf("ECHO 2: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO2));
-			} else if (strncmp(pcInputString, "drive_motors ", 13) == 0) {
+			} else if (strncmp(pcInputString, "single_drive ", 13) == 0) {
 				char sig_str[2];
 				sig_str[0] = pcInputString[13];
 				sig_str[1] = pcInputString[14];
-				//int duty = atoi(&pcInputString[16]);
-				if(strncmp(sig_str, "1a", 2) == 0){
-					printf("CMD result: Perform motor diagnostic .\r\n");
-					printf("Sending motor signal 1A, 20Hz for 30 seconds.\r\n");
-					printf("Duty Cycle: 5\r\n");
-					set_drive_motor_signal(&motorA, 1, 10);
-					cyhal_system_delay_ms(3000);
-					printf(".\r\n");
-					cyhal_system_delay_ms(3000);
-					printf(".\r\n");
-					printf("Duty Cycle: 10\r\n");
-					set_drive_motor_signal(&motorA, 1, 25);
-					cyhal_system_delay_ms(3000);
-					printf(".\r\n");
-					cyhal_system_delay_ms(3000);
-					printf(".\r\n");
-					printf("Duty Cycle: 25\r\n");
-					set_drive_motor_signal(&motorA, 1, 50);
-					cyhal_system_delay_ms(3000);
-					printf(".\r\n");
-					cyhal_system_delay_ms(3000);
-					printf(".\r\n");
-					printf("Duty Cycle: 50\r\n");
-					set_drive_motor_signal(&motorA, 1, 85);
-					cyhal_system_delay_ms(3000);
-					printf(".\r\n");
-					cyhal_system_delay_ms(3000);
-					printf(".\r\n");
-					printf("Duty Cycle: 85\r\n");
-					set_drive_motor_signal(&motorA, 1, 100);
-					cyhal_system_delay_ms(1000);
-					printf(".\r\n");
-					cyhal_system_delay_ms(1000);
-					printf(".\r\n");
-					printf("Ending motor signal 1A.\r\n");
-					set_drive_motor_signal(&motorA, 1, 0);
-				}
-				else if(strncmp(sig_str, "2a", 2) == 0){
-					printf("==============================================\r\n");
-					printf("Sending motor signal 2A, 20Hz for 10 seconds.\r\n");
-					set_drive_motor_signal(&motorA, 2, 10);
-					cyhal_system_delay_ms(1000);
-					printf(".\r\n");
-					cyhal_system_delay_ms(1000);
-					printf(".\r\n");
-					cyhal_system_delay_ms(1000);
-					printf(".\r\n");
-					cyhal_system_delay_ms(1000);
-					printf(".\r\n");
-					cyhal_system_delay_ms(1000);
-					printf(".\r\n");
-					cyhal_system_delay_ms(1000);
-					printf(".\r\n");
-					cyhal_system_delay_ms(1000);
-					printf(".\r\n");
-					cyhal_system_delay_ms(1000);
-					printf(".\r\n");
-					cyhal_system_delay_ms(1000);
-					printf(".\r\n");
-					cyhal_system_delay_ms(1000);
-					printf(".\r\n");
-					printf("Ending motor signal 2A.\r\n");
-					set_drive_motor_signal(&motorA, 2, 0);
-				}
-				else if(strncmp(sig_str, "1b", 2) == 0){
-					printf("==============================================\r\n");
-					printf("Sending motor signal 1B, 20Hz for 10 seconds.\r\n");
-					set_drive_motor_signal(&motorB, 1, 10);
-					printf("[");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..]\r\n");
-					printf("Ending motor signal 1B.\r\n");
-					set_drive_motor_signal(&motorB, 1, 0);
-				}
-				else if(strncmp(sig_str, "2b", 2) == 0){
-					printf("==============================================\r\n");
-					printf("Sending motor signal 2B, 20Hz for 10 seconds.\r\n");
-					set_drive_motor_signal(&motorB, 2, 10);
-					printf("[");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..");
-					cyhal_system_delay_ms(1000);
-					printf("..]\r\n");
-					printf("Ending motor signal 2B.\r\n");
-					set_drive_motor_signal(&motorB, 2, 0);
-				}
+				int duty = atoi(&pcInputString[16]);
+				
+				if(isMotorString(sig_str)) {
+					singleDrive(charToMotor(pcInputString[14]), atoi(&pcInputString[13]), duty);
+				}					
 				else{
 					printf("No motor signal specified. enter signal name after CMD. 1a, 2a, 1b, 2b");
 				}
-
 			} else if (strncmp(pcInputString, "motorA ", 7) == 0){
 				char sig_str[2];
 				sig_str[0] = pcInputString[7];
 				sig_str[1] = pcInputString[8];
+				int duty = atoi(&pcInputString[10]);
 				printf("Current Motor Status\r\n");
 				print_motor(&motorA);
 				
-				if(strncmp(sig_str, "50", 2) == 0){
-					set_drive_motor_speed(&motorA, 50);
-					print_motor(&motorA);
-				}
-				else if(strncmp(sig_str, "cc", 2) == 0){
+				if(strncmp(sig_str, "cc", 2) == 0){
+					set_drive_motor_speed(&motorA, duty);
 					set_drive_motor_direction(&motorA, 1);
 					print_motor(&motorA);
+					cyhal_system_delay_ms(5000);
+					set_drive_motor_speed(&motorA, 0);
+					print_motor(&motorA);
+					
 				}
 				else if(strncmp(sig_str, "cw", 2) == 0){
+					set_drive_motor_speed(&motorA, duty);
 					set_drive_motor_direction(&motorA, -1);
 					print_motor(&motorA);
-				}
-				else {
+					cyhal_system_delay_ms(5000);
 					set_drive_motor_speed(&motorA, 0);
+					print_motor(&motorA);
+					
+				}
+				else if(strncmp(sig_str, "br", 2) == 0){
+					set_drive_motor_speed(&motorA, 0);
+					set_drive_motor_direction(&motorA, 0);
 					set_drive_motor_signal(&motorA, 1, 0);
 					set_drive_motor_signal(&motorA, 2, 0);
 					print_motor(&motorA);
