@@ -54,7 +54,8 @@
 #define ENABLE_I2C 1
 #define ENABLE_TEMP 0
 #define ENABLE_IO_EXPANDER 0
-#define ENABLE_IR_MUX 1
+#define ENABLE_IR_MUX 0
+#define ENABLE_IR 1
 // ----------------------------
 
 int main(void) {
@@ -192,12 +193,14 @@ printf("Initialization complete.\r\n\n");
 				#endif
 			} else if (strncmp(pcInputString, "IR read", 7) == 0) {
 				#if ENABLE_I2C
-					#if ENABLE_IR_MUX
-						printf("CMD result: init test begin\r\n");
-						VL53LX_Dev_t IR_dev_2;
-						VL53LX_DataInit(&IR_dev_2);
+					#if ENABLE_IR
+						while (true) {
+							printf("CMD result: init test begin\r\n");
+							VL53LX_Dev_t IR_dev_2;
+							VL53LX_DataInit(&IR_dev_2);
+						}
 					#else
-						printf("CMD fail: io expander not enabled.\r\n");
+						printf("CMD fail: IR not enabled.\r\n");
 					#endif
 				#else
 					printf("CMD fail: I2C not enabled.\r\n");
