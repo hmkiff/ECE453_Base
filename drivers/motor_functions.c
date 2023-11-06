@@ -171,8 +171,8 @@ void drive_arc(float turn_radius, float speed_mps, int direction){
 	set_drive_move_direction(FORWARD);
 	int inner_rad = (turn_radius - (WHEEL_WIDTH/2));
 	int outer_rad = (turn_radius + (WHEEL_WIDTH/2));
-	int speed_left;
-	int speed_right;
+	int speed_left = 0;
+	int speed_right = 0;
 	set_drive_motor_speed(&motorA, speed_left);
 	set_drive_motor_speed(&motorB, speed_right);
 }
