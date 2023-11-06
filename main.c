@@ -49,16 +49,22 @@
 #include "main.h"
 
 // Enables --------------------
+// SPI device enables
 #define ENABLE_SPI 0
 // I2C device enables
 #define ENABLE_I2C 1
 #define ENABLE_TEMP 0
-#define ENABLE_IO_EXPANDER 0
 #define ENABLE_IR_MUX 0
 #define ENABLE_IR 1
+#define ENABLE_IO_EXPANDER 0
+// PWM device enables
+#define ENABLE_MOTOR 1
 // ----------------------------
 
 int main(void) {
+	float temp;
+	uint8_t led_mask = 0x00;
+
     console_init();
 
     printf("\x1b[2J\x1b[;H");
@@ -121,7 +127,12 @@ int main(void) {
     }
 #endif
 
-printf("Initialization complete.\r\n\n");
+#if ENABLE_MOTOR
+    printf("* -- Initializing Motor Functions\n\r");
+    motor_init();
+#endif
+
+printf("****************** \r\n\n");
 
     while(1)
     {
@@ -205,6 +216,33 @@ printf("Initialization complete.\r\n\n");
 				#else
 					printf("CMD fail: I2C not enabled.\r\n");
 				#endif
+			} else if (strncmp(pcInputString, "step dir ", 9) == 0) {
+				char step_dir = pcInputString[9];
+				bool motor_dir = 0;
+				bool valid_flag = 1;
+				if(step_dir == 'r') {motor_dir = 1 ;}
+				else if(step_dir == 'l') {motor_dir = 0;}
+				else {valid_flag = 0;}
+				if (valid_flag) {
+					printf("CMD result: Setting stepper direction to %s\r\n", motor_dir ? "right" : "left");
+					motor_set_dir(motor_dir);
+				} else {
+					printf("CMD fail: Invalid direction command. Check case!\r\n");
+				}
+			} else if (strncmp(pcInputString, "step speed ", 11) == 0) {
+				int step_speed = atoi(&pcInputString[11]);
+				printf("CMD result: Setting stepper speed to %d\r\n", step_speed);
+				motor_step_speed(step_speed);
+				if(step_speed < 0 || step_speed > 200){
+					printf("CMD warning: Stepper speed was out-of-bounds and rectified to 0 or 200\r\n");
+				}
+			} else if (strncmp(pcInputString, "servo ", 6) == 0) {
+				int servo_angle = atoi(&pcInputString[6]);
+				printf("CMD result: Setting servo angle to %d\r\n", servo_angle);
+				motor_set_pwm(servo_angle);
+				if(servo_angle < 0 || servo_angle > 180){
+					printf("CMD warning: Servo angle was out-of-bounds and rectified to 0 or 180\r\n");
+				}
 			} else {
 				printf("CMD fail: command not recognized.\r\n");
 			}
