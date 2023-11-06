@@ -22,13 +22,34 @@
 #define PIN_MOTOR_2B    P10_3 // P9_4
 
 // Drive Motor PWM Frequency
-#define DRV_PWM_FREQ 20
-#define MAX_RPM 200
+#define DRV_PWM_FREQ    20
+#define MAX_RPM         200
+
+// Wheel Constants
+// radius: 53.3 mm
+// max speed 200rpm
+// 200rpm * 2pi / 60 = 20.94395 rad/s
+// speed: rad/s * radius = 1158.200435 mm/s ~ 1.158 m/s of one wheel.
+// 1m/s -> rpm -> duty cycle = (1000mm / 53.3mm) * 60 / (2pi) = 179.16128 rpm ~ 86%
+#define CIRCUMFERENCE   336.15  // [mm]
+#define WHEEL_WIDTH     200     // distance between both wheels (width of robot)
+#define MAX_SPEED       1.15    // [m/s]
+#define RPMtoDC         0.005   // [1/200rpm]
+#define MPStoDC         89.6    // [(1000mm/m * 60sec/min * 100%) / (53.3mm * 2 * pi * 200rpm)]
+
+// Turning and Motion Defs
+#define LEFT    -1
+#define RIGHT    1
+#define FORWARD  1
+#define REVERSE -1
+#define BRAKE    0
+#define STRAIGHT 0
+
 
 // Pin definitions for the ECE453 Staff Dev board
 #define PIN_MOTOR_DIR   P5_0
 #define PIN_MOTOR_STEP  P5_1
-#define PIN_MOTOR_PWM  P5_2
+#define PIN_MOTOR_PWM   P5_2
 
 extern struct MOTOR{
     char name;
@@ -78,8 +99,16 @@ void set_drive_speed(int duty);
 // sets speed of both motors given rpm
 void set_drive_speed_rpm(int speed_rpm);
 
+// Tells the robot to drive in a straight line of 'distance_cm' [cm] at a 'speed_mps' [m/s]
+void drive_line(float distance_cm, float speed_mps);
+
+// Tells the robot to drive in an arc with a 'turn_radius' at 'speed_mps' in 'direction'.
+void drive_arc(float turn_radius, float speed_mps, int direction);
+
 // prints contents of MOTOR struct.
 void print_motor(struct MOTOR * motor);
+
+
 
 
 

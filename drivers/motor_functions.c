@@ -109,7 +109,7 @@ void set_drive_motor_speed_rpm(struct MOTOR *motor, int speed_rpm)
 
 void set_drive_move_direction(int move_dir)
 {
-	// -1: reverse, 0: brake, 1: forward
+	// move_dir = -1: reverse, 0: brake, 1: forward
 	if(move_dir < 0){
 		set_drive_motor_direction(&motorA, -1);
 		set_drive_motor_direction(&motorB,  1);
@@ -129,11 +129,11 @@ void set_drive_turn_direction(int turn_dir)
 	// -1: left, 0: straight, 1: right
 	if(turn_dir < 0){
 		set_drive_motor_direction(&motorA, -1);
-		set_drive_motor_direction(&motorB,  1);
+		set_drive_motor_direction(&motorB, -1);
 	}
 	if(turn_dir > 0){
 		set_drive_motor_direction(&motorA,  1);
-		set_drive_motor_direction(&motorB, -1);
+		set_drive_motor_direction(&motorB, 	1);
 	}
 	else{
 		set_drive_motor_direction(&motorA, 0);
@@ -144,10 +144,37 @@ void set_drive_turn_direction(int turn_dir)
 
 void set_drive_speed(int duty)
 {
+	int duty_percent = duty;
+	if(duty > 100) duty_percent = 100;
+	else if(duty < 0) duty_percent = 0;
+	set_drive_motor_speed(&motorA, duty_percent);
+	set_drive_motor_speed(&motorB, duty_percent);
 }
 
 void set_drive_speed_rpm(int speed_rpm)
 {
+	int duty_percent = (speed_rpm * 100) / MAX_RPM;
+	set_drive_speed(duty_percent);
+}
+
+void drive_line(float distance_cm, float speed_mps){
+	int duty = speed_mps * MPStoDC;
+	set_drive_move_direction(1);
+	set_drive_speed(duty);
+	cyhal_system_delay_ms((distance_cm*1000)/speed_mps);
+	set_drive_speed(0);
+	set_drive_move_direction(0);
+}
+
+void drive_arc(float turn_radius, float speed_mps, int direction){
+	int duty = speed_mps * MPStoDC;
+	set_drive_move_direction(FORWARD);
+	int inner_rad = (turn_radius - (WHEEL_WIDTH/2));
+	int outer_rad = (turn_radius + (WHEEL_WIDTH/2));
+	int speed_left;
+	int speed_right;
+	set_drive_motor_speed(&motorA, speed_left);
+	set_drive_motor_speed(&motorB, speed_right);
 }
 
 void print_motor(struct MOTOR * motor){
