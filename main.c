@@ -284,10 +284,16 @@ printf("****************** \r\n\n");
 			
 		} else {
 			// Swarm mode
-			// Gather new sensor data into botstate
-			botstate state[NUM_BOTS];
+			// Sweep ultrasonic
 
-			// Pass botstate to swarm algorithm to get next position
+			// Gather new sensor data into own botstate
+			state[0].us_echo1_cm = ultrasonic_get_object_distance(PIN_ECHO1);
+			state[0].us_echo2_cm = ultrasonic_get_object_distance(PIN_ECHO2);
+			state[0].servo_ang_rad = 0;
+
+			// Collect other botstates over bt
+
+			// Pass botstates to swarm algorithm to get next position
 			botpos next_pos = swarm(state, 0);
 
 			// Move to position

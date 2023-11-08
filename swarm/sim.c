@@ -1,44 +1,58 @@
+#define SIM
 #ifdef SIM
 
 #include <limits.h>
 #include <math.h>
 #include "tigr.h"
 #include "botstate.h"
+#include "environment.h"
 #include "swarm.h"
-#define M_PI 3.14159265358979323846
+#include "simbot.h"
 
-#define NUM_BOTS 4
-#define SIM_BOTS 3
+#define M_PI 3.14159265358979323846
 
 enum Initpos {
     LINE,
     CIRCLE
 };
 
-enum Terrain {
-    WALL_ONLY
-};
+void drawBot(Tigr *screen, botstate bot[NUM_BOTS], int bot_ind, TPixel color) {
+    // Chassis
+    int botRad = 20;
+    tigrCircle(screen, bot[bot_ind].pos.pos_x, bot[bot_ind].pos.pos_y, botRad, color);
+    // Heading indicator
+    float x_head = bot[bot_ind].pos.pos_x + botRad * sin(bot[bot_ind].pos.heading_rad);
+    float y_head = bot[bot_ind].pos.pos_y + botRad * cos(bot[bot_ind].pos.heading_rad);
+    tigrCircle(screen, x_head, y_head, 5, color);
+    // Ultrasonic indicator
+    float x_us = bot[bot_ind].pos.pos_x + botRad * sin(bot[bot_ind].pos.heading_rad + bot[bot_ind].servo_ang_rad);
+    float y_us = bot[bot_ind].pos.pos_y + botRad * cos(bot[bot_ind].pos.heading_rad + bot[bot_ind].servo_ang_rad);
+    tigrCircle(screen, x_us, y_us, 3, color);
+}
 
 int main(int argc, char *argv[]) {
     botstate bot[NUM_BOTS];
 
-    enum Initpos init_pos = LINE;
-    if (init_pos == LINE) {
-        for (int i = 0; i < NUM_BOTS; i++) {
-            bot[i].pos.pos_x = i * 100 + 350;
-            bot[i].pos.pos_y = 100;
-        }
-    }
+    Environment env;
+    env.wall_on = 1;
+    env.wall_x = 10;
+    env.wall_y = 10;
+    env.wall_w = 980;
+    env.wall_h = 780;
 
-    enum Terrain terrain = WALL_ONLY;
-    int wall_x = 10;
-    int wall_y = 10;
-    int wall_w = 980;
-    int wall_h = 780;
+    SimbotBehavior behavior;
+    behavior.sweep_us = 1;
+    behavior.sweep_us_step = 0.2;
+    behavior.sweep_us_max = M_PI;
+    behavior.sweep_us_min = 0;
+
+    for (int i = 0; i < NUM_BOTS; i++) {
+        bot[i] = simbot_init(bot, i, behavior);
+    }
 
     Tigr *screen = tigrWindow(1000, 800, "Swarm-sim", 1);
     int time = 0;
-    int frameskip = 1000000;
+    int frameskip = 100000000;
     while (!tigrClosed(screen)) {
         if (time == INT_MAX) {
             time = 0;
@@ -48,40 +62,20 @@ int main(int argc, char *argv[]) {
 
         if (time % frameskip == 0) {
             // Update simulated sensor data
-            for (int i = NUM_BOTS; i > SIM_BOTS; i--) {
-                printf("Swarm: Updating simulated bot %i\r\n", i);
-                if (terrain == WALL_ONLY) {
-                    float dist_x, dist_y;
-                    float ang_x, ang_y;
-                    if (bot[i].pos.pos_x < (wall_w / 2)) {
-                        dist_x = bot[i].pos.pos_x - wall_x;
-                        ang_x = M_PI;
-                    } else {
-                        dist_x = (wall_w + wall_x) - bot[i].pos.pos_x;
-                        ang_x = 0;
-                    }
-                    if (bot[i].pos.pos_y < (wall_h / 2)) {
-                        dist_y = bot[i].pos.pos_y - wall_y;
-                        ang_y = M_PI * 0.5;
-                    } else {
-                        dist_y = (wall_h + wall_y) - bot[i].pos.pos_y;
-                        ang_y = M_PI * 1.5;
-                    }
-                    bot[i].us_dist_cm = (dist_x < dist_y) ? dist_x : dist_y;
-                    bot[i].us_servo_ang_rad = (dist_x < dist_y) ? ang_x : ang_y;
-                }
+            for (int i = 0; i < NUM_BOTS; i++) {
+                bot[i] = simbot(bot, i, env, behavior);
             }
 
             tigrClear(screen, tigrRGB(0x00, 0x00, 0x00));
 
-            if (terrain == WALL_ONLY) {
-                tigrRect(screen, wall_x, wall_y, wall_w, wall_h, tigrRGB(0xFF, 0x00, 0x00));
+            if (env.wall_on) {
+                tigrRect(screen, env.wall_x, env.wall_y, env.wall_w, env.wall_h, tigrRGB(0xFF, 0x00, 0x00));
             }
 
             for (int i = 0; i < NUM_BOTS; i++) {
-                tigrCircle(screen, bot[i].pos.pos_x, bot[i].pos.pos_y, 20, tigrRGB(0x00, 0x00, 0xFF));
+                drawBot(screen, bot, i, tigrRGB(0x00, 0x00, 0xFF));
                 bot[i].pos = swarm(bot, i);
-                tigrCircle(screen, bot[i].pos.pos_x, bot[i].pos.pos_y, 20, tigrRGB(0x00, 0xFF, 0x00));
+                drawBot(screen, bot, i, tigrRGB(0x00, 0xFF, 0x00));
             }
 
             tigrUpdate(screen);
