@@ -47,8 +47,21 @@
 #include "cybsp.h"
 
 #include "main.h"
+#include "botstate.h"
+#include "swarm.h"
 
 // Enables --------------------
+
+// Debug console mode
+#define DEBUG_CONSOLE_MODE 1
+
+// Simbot enables
+// Should this PSoC6 board fake sensor data?
+#define SIMBOT_HOST 0
+// If SIMBOT_HOST is 1, how many bots should be faked?
+#define NUM_SIMBOTS 3
+
+// Device enables
 // SPI device enables
 #define ENABLE_SPI 0
 // I2C device enables
@@ -59,7 +72,12 @@
 #define ENABLE_IO_EXPANDER 0
 // PWM device enables
 #define ENABLE_MOTOR 1
-// ----------------------------
+#define ENABLE_ULTRASONIC 1
+
+// Bot state information
+botstate state[NUM_BOTS];
+
+
 
 int main(void) {
 	float temp;
@@ -138,120 +156,131 @@ printf("****************** \r\n\n");
     {
     	Cy_SysLib_Delay(1000);
 
-		// Command conditions
-		if (ALERT_CONSOLE_RX) {
-			if (strncmp(pcInputString, "temp", 4) == 0) {
-				#if ENABLE_TEMP
-					temp = LM75_get_temp();
-					printf("CMD Result: Temperature = %.2f\r\n", temp);
-				#else
-					printf("CMD fail: Temperature not enabled.\r\n");
-				#endif
-			} else if (strncmp(pcInputString, "led on ", 7) == 0) {
-				#if ENABLE_I2C
-					#if ENABLE_IO_EXPANDER
-						char led_num_str = pcInputString[7];
-						int led_num = atoi(&led_num_str);
-						if ((led_num >= 0) && (led_num <= 7)) {
-							printf("CMD result: Turning LED %i on\r\n", led_num);
-							led_mask = led_mask | (uint8_t)pow(2, led_num);
-							io_expander_write_reg(0x01, led_mask);
-						} else {
-							printf("CMD fail: No LED at %i\r\n", led_num);
-						}
+		if (DEBUG_CONSOLE_MODE == 1) {
+			// Command conditions
+			if (ALERT_CONSOLE_RX) {
+				if (strncmp(pcInputString, "temp", 4) == 0) {
+					#if ENABLE_TEMP
+						temp = LM75_get_temp();
+						printf("CMD Result: Temperature = %.2f\r\n", temp);
 					#else
-						printf("CMD fail: io expander not enabled.\r\n");
+						printf("CMD fail: Temperature not enabled.\r\n");
 					#endif
-				#else
-					printf("CMD fail: I2C not enabled.\r\n");
-				#endif
-			} else if (strncmp(pcInputString, "led off ", 8) == 0) {
-				#if ENABLE_I2C
-					#if ENABLE_IO_EXPANDER
-						char led_num_str = pcInputString[8];
-						int led_num = atoi(&led_num_str);
-						if ((led_num >= 0) && (led_num <= 7)) {
-							printf("CMD result: Turning LED %i off\r\n", led_num);
-							led_mask = led_mask & ~(uint8_t)pow(2, led_num);
-							io_expander_write_reg(0x01, led_mask);
-							printf("CMD result: LED %i turned off.\r\n", led_num);
-						} else {
-							printf("CMD fail: No LED at %i\r\n", led_num);
-						}
+				} else if (strncmp(pcInputString, "led on ", 7) == 0) {
+					#if ENABLE_I2C
+						#if ENABLE_IO_EXPANDER
+							char led_num_str = pcInputString[7];
+							int led_num = atoi(&led_num_str);
+							if ((led_num >= 0) && (led_num <= 7)) {
+								printf("CMD result: Turning LED %i on\r\n", led_num);
+								led_mask = led_mask | (uint8_t)pow(2, led_num);
+								io_expander_write_reg(0x01, led_mask);
+							} else {
+								printf("CMD fail: No LED at %i\r\n", led_num);
+							}
+						#else
+							printf("CMD fail: io expander not enabled.\r\n");
+						#endif
 					#else
-						printf("CMD fail: io expander not enabled.\r\n");
+						printf("CMD fail: I2C not enabled.\r\n");
 					#endif
-				#else
-					printf("CMD fail: I2C not enabled.\r\n");
-				#endif
-			} else if (strncmp(pcInputString, "IR sel ", 7) == 0) {
-				#if ENABLE_I2C
-					#if ENABLE_IR_MUX
-						char ch_num_str = pcInputString[7];
-						int ch_num = atoi(&ch_num_str);
-						cy_rslt_t result = ir_mux_set_chnl(ch_num);
-						if (result != CY_RSLT_SUCCESS) {
-							print_result(result);
-							printf("CMD fail: Couldn't switch IR, see error above\r\n");
-						} else {
-							printf("CMD result: IR swicthed to ch. %i\r\n", ch_num);
-						}
+				} else if (strncmp(pcInputString, "led off ", 8) == 0) {
+					#if ENABLE_I2C
+						#if ENABLE_IO_EXPANDER
+							char led_num_str = pcInputString[8];
+							int led_num = atoi(&led_num_str);
+							if ((led_num >= 0) && (led_num <= 7)) {
+								printf("CMD result: Turning LED %i off\r\n", led_num);
+								led_mask = led_mask & ~(uint8_t)pow(2, led_num);
+								io_expander_write_reg(0x01, led_mask);
+								printf("CMD result: LED %i turned off.\r\n", led_num);
+							} else {
+								printf("CMD fail: No LED at %i\r\n", led_num);
+							}
+						#else
+							printf("CMD fail: io expander not enabled.\r\n");
+						#endif
 					#else
-						printf("CMD fail: io expander not enabled.\r\n");
+						printf("CMD fail: I2C not enabled.\r\n");
 					#endif
-				#else
-					printf("CMD fail: I2C not enabled.\r\n");
-				#endif
-			} else if (strncmp(pcInputString, "IR read", 7) == 0) {
-				#if ENABLE_I2C
-					#if ENABLE_IR
-						while (true) {
-							printf("CMD result: init test begin\r\n");
-							VL53LX_Dev_t IR_dev_2;
-							VL53LX_DataInit(&IR_dev_2);
-						}
+				} else if (strncmp(pcInputString, "IR sel ", 7) == 0) {
+					#if ENABLE_I2C
+						#if ENABLE_IR_MUX
+							char ch_num_str = pcInputString[7];
+							int ch_num = atoi(&ch_num_str);
+							cy_rslt_t result = ir_mux_set_chnl(ch_num);
+							if (result != CY_RSLT_SUCCESS) {
+								print_result(result);
+								printf("CMD fail: Couldn't switch IR, see error above\r\n");
+							} else {
+								printf("CMD result: IR swicthed to ch. %i\r\n", ch_num);
+							}
+						#else
+							printf("CMD fail: io expander not enabled.\r\n");
+						#endif
 					#else
-						printf("CMD fail: IR not enabled.\r\n");
+						printf("CMD fail: I2C not enabled.\r\n");
 					#endif
-				#else
-					printf("CMD fail: I2C not enabled.\r\n");
-				#endif
-			} else if (strncmp(pcInputString, "step dir ", 9) == 0) {
-				char step_dir = pcInputString[9];
-				bool motor_dir = 0;
-				bool valid_flag = 1;
-				if(step_dir == 'r') {motor_dir = 1 ;}
-				else if(step_dir == 'l') {motor_dir = 0;}
-				else {valid_flag = 0;}
-				if (valid_flag) {
-					printf("CMD result: Setting stepper direction to %s\r\n", motor_dir ? "right" : "left");
-					motor_set_dir(motor_dir);
+				} else if (strncmp(pcInputString, "IR read", 7) == 0) {
+					#if ENABLE_I2C
+						#if ENABLE_IR
+							while (true) {
+								printf("CMD result: init test begin\r\n");
+								VL53LX_Dev_t IR_dev_2;
+								VL53LX_DataInit(&IR_dev_2);
+							}
+						#else
+							printf("CMD fail: IR not enabled.\r\n");
+						#endif
+					#else
+						printf("CMD fail: I2C not enabled.\r\n");
+					#endif
+				} else if (strncmp(pcInputString, "step dir ", 9) == 0) {
+					char step_dir = pcInputString[9];
+					bool motor_dir = 0;
+					bool valid_flag = 1;
+					if(step_dir == 'r') {motor_dir = 1 ;}
+					else if(step_dir == 'l') {motor_dir = 0;}
+					else {valid_flag = 0;}
+					if (valid_flag) {
+						printf("CMD result: Setting stepper direction to %s\r\n", motor_dir ? "right" : "left");
+						motor_set_dir(motor_dir);
+					} else {
+						printf("CMD fail: Invalid direction command. Check case!\r\n");
+					}
+				} else if (strncmp(pcInputString, "step speed ", 11) == 0) {
+					int step_speed = atoi(&pcInputString[11]);
+					printf("CMD result: Setting stepper speed to %d\r\n", step_speed);
+					motor_step_speed(step_speed);
+					if(step_speed < 0 || step_speed > 200){
+						printf("CMD warning: Stepper speed was out-of-bounds and rectified to 0 or 200\r\n");
+					}
+				} else if (strncmp(pcInputString, "servo ", 6) == 0) {
+					int servo_angle = atoi(&pcInputString[6]);
+					printf("CMD result: Setting servo angle to %d\r\n", servo_angle);
+					motor_set_pwm(servo_angle);
+					if(servo_angle < 0 || servo_angle > 180){
+						printf("CMD warning: Servo angle was out-of-bounds and rectified to 0 or 180\r\n");
+					}
 				} else {
-					printf("CMD fail: Invalid direction command. Check case!\r\n");
+					printf("CMD fail: command not recognized.\r\n");
 				}
-			} else if (strncmp(pcInputString, "step speed ", 11) == 0) {
-				int step_speed = atoi(&pcInputString[11]);
-				printf("CMD result: Setting stepper speed to %d\r\n", step_speed);
-				motor_step_speed(step_speed);
-				if(step_speed < 0 || step_speed > 200){
-					printf("CMD warning: Stepper speed was out-of-bounds and rectified to 0 or 200\r\n");
-				}
-			} else if (strncmp(pcInputString, "servo ", 6) == 0) {
-				int servo_angle = atoi(&pcInputString[6]);
-				printf("CMD result: Setting servo angle to %d\r\n", servo_angle);
-				motor_set_pwm(servo_angle);
-				if(servo_angle < 0 || servo_angle > 180){
-					printf("CMD warning: Servo angle was out-of-bounds and rectified to 0 or 180\r\n");
-				}
-			} else {
-				printf("CMD fail: command not recognized.\r\n");
+				cInputIndex = 0;
+				ALERT_CONSOLE_RX = false;
 			}
-			cInputIndex = 0;
-			ALERT_CONSOLE_RX = false;
+		} else if (SIMBOT_HOST == 1) {
+			
+		} else {
+			// Swarm mode
+			// Gather new sensor data into botstate
+			botstate state[NUM_BOTS];
+
+			// Pass botstate to swarm algorithm to get next position
+			botpos next_pos = swarm(state, 0);
+
+			// Move to position
 		}
     }
 }
-
-
 
 /* [] END OF FILE */
