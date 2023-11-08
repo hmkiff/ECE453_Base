@@ -47,8 +47,8 @@
 #include "cybsp.h"
 
 #include "main.h"
-#include "botstate.h"
-#include "swarm.h"
+#include "swarm/botstate.h"
+#include "swarm/swarm.h"
 
 // Enables --------------------
 
@@ -76,8 +76,6 @@
 
 // Bot state information
 botstate state[NUM_BOTS];
-
-
 
 int main(void) {
 	float temp;
