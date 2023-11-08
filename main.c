@@ -145,6 +145,12 @@ int main(void) {
 
 #if ENABLE_MOTOR
     printf("* -- Initializing Motor Functions\n\r");
+    drive_motor_init();
+#endif
+
+#if ENABLE_ULTRASONIC
+    printf("* -- Initializing Ultrasonic Functions\n\r");
+    ultrasonic_init();
     motor_init();
 #endif
 
