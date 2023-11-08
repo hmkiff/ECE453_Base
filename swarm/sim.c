@@ -1,4 +1,3 @@
-#define SIM
 #ifdef SIM
 
 #include <limits.h>
