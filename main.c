@@ -256,14 +256,18 @@ printf("****************** \r\n\n");
 						cyhal_system_delay_ms(5000);
 						set_drive_motor_speed(&motorA, 0);
 						print_motor(&motorA);
-					} else if(strncmp(sig_str, "cw", 2) == 0) {
+						
+					}
+					else if(strncmp(sig_str, "cw", 2) == 0){
 						set_drive_motor_speed(&motorA, duty);
 						set_drive_motor_direction(&motorA, -1);
 						print_motor(&motorA);
 						cyhal_system_delay_ms(5000);
 						set_drive_motor_speed(&motorA, 0);
 						print_motor(&motorA);
-					} else if (strncmp(sig_str, "br", 2) == 0) {
+						
+					}
+					else if(strncmp(sig_str, "br", 2) == 0){
 						set_drive_motor_speed(&motorA, 0);
 						set_drive_motor_direction(&motorA, 0);
 						set_drive_motor_signal(&motorA, 1, 0);
