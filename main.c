@@ -47,17 +47,37 @@
 #include "cybsp.h"
 
 #include "main.h"
+#include "swarm/botstate.h"
+#include "swarm/swarm.h"
 
-// Enables
-#define ENABLE_I2C 0
+// Enables --------------------
+
+// Debug console mode
+#define DEBUG_CONSOLE_MODE 1
+
+// Simbot enables
+// Should this PSoC6 board fake sensor data?
+#define SIMBOT_HOST 0
+// If SIMBOT_HOST is 1, how many bots should be faked?
+#define NUM_SIMBOTS 3
+
+// Device enables
+// SPI device enables
 #define ENABLE_SPI 0
+// I2C device enables
+#define ENABLE_I2C 1
 #define ENABLE_TEMP 0
+#define ENABLE_IR_MUX 0
+#define ENABLE_IR 1
 #define ENABLE_IO_EXPANDER 0
+// PWM device enables
 #define ENABLE_MOTOR 1
 #define ENABLE_ULTRASONIC 1
 
-int main(void)
-{
+// Bot state information
+botstate state[NUM_BOTS];
+
+int main(void) {
 	float temp;
 	uint8_t led_mask = 0x00;
 
@@ -78,13 +98,32 @@ int main(void)
     /* Enable global interrupts */
     	__enable_irq();
 
+// I2C-based devices init
 #if ENABLE_I2C
     printf("* -- Initializing I2C Bus\n\r");
     i2c_init();
+	#if ENABLE_TEMP
+		float temp;
+	#endif
 	#if ENABLE_IO_EXPANDER
 		printf("* -- Initializing I/O Expander\n\r");
-		io_expander_write_reg(0x03, 0x00); 	// Set all pins as outputs
-		io_expander_write_reg(0x01, 0xFF); 	// Turn on all LEDs
+		uint8_t led_mask = 0x00;
+		io_expander_set_all_out();
+	#endif
+	#if ENABLE_IR_MUX
+		printf("* -- Initializing IR Mux\n\r");
+		cy_rslt_t result = cyhal_gpio_init(IR_MUX_RST_PIN, CYHAL_GPIO_DIR_OUTPUT, CYHAL_GPIO_DRIVE_STRONG, 1);
+		if (result != CY_RSLT_SUCCESS) {
+			print_result(result);
+			printf("IR Error: Unable to initialize IR Mux, see above\n\r");
+			return -1;
+		}
+		result = ir_mux_set_chnl(2);
+		if (result != CY_RSLT_SUCCESS) {
+			print_result(result);
+			printf("IR Error: Unable to initialize IR Mux, see above\n\r");
+			return -1;
+		}
 	#endif
 #endif
 
@@ -112,6 +151,7 @@ int main(void)
 #if ENABLE_ULTRASONIC
     printf("* -- Initializing Ultrasonic Functions\n\r");
     ultrasonic_init();
+    motor_init();
 #endif
 
 printf("****************** \r\n\n");
@@ -120,132 +160,139 @@ printf("****************** \r\n\n");
     {
     	Cy_SysLib_Delay(1000);
 
-		// Command conditions
-		if (ALERT_CONSOLE_RX) {
-			if (strncmp(pcInputString, "temp", 4) == 0) {
-				#if ENABLE_TEMP
-					temp = LM75_get_temp();
-					printf("CMD Result: Temperature = %.2f\r\n", temp);
-				#else
-					printf("CMD fail: Temperature not enabled.\r\n");
-				#endif
-			} else if (strncmp(pcInputString, "led on ", 7) == 0) {
-				#if ENABLE_IO_EXPANDER
-					char led_num_str = pcInputString[7];
-					int led_num = atoi(&led_num_str);
-					if ((led_num >= 0) && (led_num <= 7)) {
-						printf("CMD result: Turning LED %i on\r\n", led_num);
-						led_mask = led_mask | (uint8_t)pow(2, led_num);
-						io_expander_write_reg(0x01, led_mask);
+		if (DEBUG_CONSOLE_MODE == 1) {
+			// Command conditions
+			if (ALERT_CONSOLE_RX) {
+				if (strncmp(pcInputString, "IR sel ", 7) == 0) {
+					#if ENABLE_I2C
+						#if ENABLE_IR_MUX
+							char ch_num_str = pcInputString[7];
+							int ch_num = atoi(&ch_num_str);
+							cy_rslt_t result = ir_mux_set_chnl(ch_num);
+							if (result != CY_RSLT_SUCCESS) {
+								print_result(result);
+								printf("CMD fail: Couldn't switch IR, see error above\r\n");
+							} else {
+								printf("CMD result: IR swicthed to ch. %i\r\n", ch_num);
+							}
+						#else
+							printf("CMD fail: io expander not enabled.\r\n");
+						#endif
+					#else
+						printf("CMD fail: I2C not enabled.\r\n");
+					#endif
+				} else if (strncmp(pcInputString, "IR read", 7) == 0) {
+					#if ENABLE_I2C
+						#if ENABLE_IR
+							while (true) {
+								printf("CMD result: init test begin\r\n");
+								VL53LX_Dev_t IR_dev_2;
+								VL53LX_DataInit(&IR_dev_2);
+							}
+						#else
+							printf("CMD fail: IR not enabled.\r\n");
+						#endif
+					#else
+						printf("CMD fail: I2C not enabled.\r\n");
+					#endif
+				} else if (strncmp(pcInputString, "step dir ", 9) == 0) {
+					char step_dir = pcInputString[9];
+					bool motor_dir = 0;
+					bool valid_flag = 1;
+					if(step_dir == 'r') {motor_dir = 1 ;}
+					else if(step_dir == 'l') {motor_dir = 0;}
+					else {valid_flag = 0;}
+					if (valid_flag) {
+						printf("CMD result: Setting stepper direction to %s\r\n", motor_dir ? "right" : "left");
+						motor_set_dir(motor_dir);
 					} else {
-						printf("CMD fail: No LED at %i\r\n", led_num);
+						printf("CMD fail: Invalid direction command. Check case!\r\n");
 					}
-				#else
-					printf("CMD fail: io expander not enabled.\r\n");
-				#endif
-			} else if (strncmp(pcInputString, "led off ", 8) == 0) {
-				#if ENABLE_IO_EXPANDER
-					char led_num_str = pcInputString[8];
-					int led_num = atoi(&led_num_str);
-					if ((led_num >= 0) && (led_num <= 7)) {
-						printf("CMD result: Turning LED %i off\r\n", led_num);
-						led_mask = led_mask & ~(uint8_t)pow(2, led_num);
-						io_expander_write_reg(0x01, led_mask);
-					} else {
-						printf("CMD fail: No LED at %i\r\n", led_num);
+				} else if (strncmp(pcInputString, "step speed ", 11) == 0) {
+					int step_speed = atoi(&pcInputString[11]);
+					printf("CMD result: Setting stepper speed to %d\r\n", step_speed);
+					motor_step_speed(step_speed);
+					if(step_speed < 0 || step_speed > 200){
+						printf("CMD warning: Stepper speed was out-of-bounds and rectified to 0 or 200\r\n");
 					}
-				#else
-					printf("CMD fail: io expander not enabled.\r\n");
-				#endif
-			} else if (strncmp(pcInputString, "step dir ", 9) == 0) {
-				char step_dir = pcInputString[9];
-				bool motor_dir = 0;
-				bool valid_flag = 1;
-				if(step_dir == 'r') {motor_dir = 1 ;}
-				else if(step_dir == 'l') {motor_dir = 0;}
-				else {valid_flag = 0;}
-				if (valid_flag) {
-					printf("CMD result: Setting stepper direction to %s\r\n", motor_dir ? "right" : "left");
-					motor_set_dir(motor_dir);
+				} else if (strncmp(pcInputString, "servo ", 6) == 0) {
+					int servo_angle = atoi(&pcInputString[6]);
+					printf("CMD result: Setting servo angle to %d\r\n", servo_angle);
+					motor_set_pwm(servo_angle);
+					if(servo_angle < 0 || servo_angle > 180){
+						printf("CMD warning: Servo angle was out-of-bounds and rectified to 0 or 180\r\n");
+					}
+				} else if (strncmp(pcInputString, "distance ", 9) == 0) {
+					//int servo_angle = atoi(&pcInputString[9]);
+					printf("CMD result: Read Distance measurements.\r\n");
+					// uint32_t echodist1;
+					// uint32_t echodist2;
+					printf("ECHO 1: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO1));
+					printf("ECHO 2: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO2));
+				} else if (strncmp(pcInputString, "single_drive ", 13) == 0) {
+					char sig_str[2];
+					sig_str[0] = pcInputString[13];
+					sig_str[1] = pcInputString[14];
+					int duty = atoi(&pcInputString[16]);
+					
+					if(isMotorString(sig_str)) {
+						singleDrive(charToMotor(pcInputString[14]), atoi(&pcInputString[13]), duty);
+					}					
+					else{
+						printf("No motor signal specified. enter signal name after CMD. 1a, 2a, 1b, 2b");
+					}
+				} else if (strncmp(pcInputString, "motorA ", 7) == 0){
+					char sig_str[2];
+					sig_str[0] = pcInputString[7];
+					sig_str[1] = pcInputString[8];
+					int duty = atoi(&pcInputString[10]);
+					printf("Current Motor Status\r\n");
+					print_motor(&motorA);
+					
+					if(strncmp(sig_str, "cc", 2) == 0){
+						set_drive_motor_speed(&motorA, duty);
+						set_drive_motor_direction(&motorA, 1);
+						print_motor(&motorA);
+						cyhal_system_delay_ms(5000);
+						set_drive_motor_speed(&motorA, 0);
+						print_motor(&motorA);
+						
+					}
+					else if(strncmp(sig_str, "cw", 2) == 0){
+						set_drive_motor_speed(&motorA, duty);
+						set_drive_motor_direction(&motorA, -1);
+						print_motor(&motorA);
+						cyhal_system_delay_ms(5000);
+						set_drive_motor_speed(&motorA, 0);
+						print_motor(&motorA);
+						
+					}
+					else if(strncmp(sig_str, "br", 2) == 0){
+						set_drive_motor_speed(&motorA, 0);
+						set_drive_motor_direction(&motorA, 0);
+						set_drive_motor_signal(&motorA, 1, 0);
+						set_drive_motor_signal(&motorA, 2, 0);
+						print_motor(&motorA);
+					}
 				} else {
-					printf("CMD fail: Invalid direction command. Check case!\r\n");
+					printf("CMD fail: command not recognized.\r\n");
 				}
-			} else if (strncmp(pcInputString, "step speed ", 11) == 0) {
-				int step_speed = atoi(&pcInputString[11]);
-				printf("CMD result: Setting stepper speed to %d\r\n", step_speed);
-				motor_step_speed(step_speed);
-				if(step_speed < 0 || step_speed > 200){
-					printf("CMD warning: Stepper speed was out-of-bounds and rectified to 0 or 200\r\n");
-				}
-			} else if (strncmp(pcInputString, "servo ", 6) == 0) {
-				int servo_angle = atoi(&pcInputString[6]);
-				printf("CMD result: Setting servo angle to %d\r\n", servo_angle);
-				motor_set_pwm(servo_angle);
-				if(servo_angle < 0 || servo_angle > 180){
-					printf("CMD warning: Servo angle was out-of-bounds and rectified to 0 or 180\r\n");
-				}
-			} else if (strncmp(pcInputString, "distance ", 9) == 0) {
-				//int servo_angle = atoi(&pcInputString[9]);
-				printf("CMD result: Read Distance measurements.\r\n");
-				// uint32_t echodist1;
-				// uint32_t echodist2;
-				printf("ECHO 1: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO1));
-				printf("ECHO 2: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO2));
-			} else if (strncmp(pcInputString, "single_drive ", 13) == 0) {
-				char sig_str[2];
-				sig_str[0] = pcInputString[13];
-				sig_str[1] = pcInputString[14];
-				int duty = atoi(&pcInputString[16]);
-				
-				if(isMotorString(sig_str)) {
-					singleDrive(charToMotor(pcInputString[14]), atoi(&pcInputString[13]), duty);
-				}					
-				else{
-					printf("No motor signal specified. enter signal name after CMD. 1a, 2a, 1b, 2b");
-				}
-			} else if (strncmp(pcInputString, "motorA ", 7) == 0){
-				char sig_str[2];
-				sig_str[0] = pcInputString[7];
-				sig_str[1] = pcInputString[8];
-				int duty = atoi(&pcInputString[10]);
-				printf("Current Motor Status\r\n");
-				print_motor(&motorA);
-				
-				if(strncmp(sig_str, "cc", 2) == 0){
-					set_drive_motor_speed(&motorA, duty);
-					set_drive_motor_direction(&motorA, 1);
-					print_motor(&motorA);
-					cyhal_system_delay_ms(5000);
-					set_drive_motor_speed(&motorA, 0);
-					print_motor(&motorA);
-					
-				}
-				else if(strncmp(sig_str, "cw", 2) == 0){
-					set_drive_motor_speed(&motorA, duty);
-					set_drive_motor_direction(&motorA, -1);
-					print_motor(&motorA);
-					cyhal_system_delay_ms(5000);
-					set_drive_motor_speed(&motorA, 0);
-					print_motor(&motorA);
-					
-				}
-				else if(strncmp(sig_str, "br", 2) == 0){
-					set_drive_motor_speed(&motorA, 0);
-					set_drive_motor_direction(&motorA, 0);
-					set_drive_motor_signal(&motorA, 1, 0);
-					set_drive_motor_signal(&motorA, 2, 0);
-					print_motor(&motorA);
-				}
-			} else {
-				printf("CMD fail: command not recognized.\r\n");
+				cInputIndex = 0;
+				ALERT_CONSOLE_RX = false;
 			}
-			cInputIndex = 0;
-			ALERT_CONSOLE_RX = false;
+		} else if (SIMBOT_HOST == 1) {
+			
+		} else {
+			// Swarm mode
+			// Gather new sensor data into botstate
+			botstate state[NUM_BOTS];
+
+			// Pass botstate to swarm algorithm to get next position
+			botpos next_pos = swarm(state, 0);
+
+			// Move to position
 		}
     }
-	//motorfree();
 }
-
-
 
 /* [] END OF FILE */

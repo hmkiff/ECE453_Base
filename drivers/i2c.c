@@ -47,3 +47,11 @@ cy_rslt_t i2c_init(void)
 
 	return CY_RSLT_SUCCESS;
 }
+
+/**
+ * @brief Close any i2c-related resources. We don't do this right now,
+ * but the IR API expects us to, so this is here for future-proofing.
+ */
+cy_rslt_t i2c_close(void) {
+	return CY_RSLT_SUCCESS;
+}
