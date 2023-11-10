@@ -23,6 +23,8 @@ void * charToMotor(char c);
 
 void singleDrive(struct MOTOR * motor, int signal, int duty);
 
+void DriveMotorA(char * sig_str, int duty);
+
 bool isMotorString(char * str);
 
 
