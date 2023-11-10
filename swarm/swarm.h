@@ -11,10 +11,23 @@
 
 #include <math.h>
 #include "botstate.h"
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 #define NUM_BOTS 4
-#define COHESION_FACTOR 0.2
-#define SEPARATION_FACTOR 50
+
+typedef enum {
+    LINEAR,
+    INVERSE,
+    EXPONENTIAL,
+    LOGARITHMIC
+} Curve;
+
+#define COHESION_FACTOR 0.1
+#define COHESION_CURVE 1
+#define SEPARATION_FACTOR 1
+#define SEPARATION_CURVE 2
 botpos swarm(botstate bot[NUM_BOTS], int self_ind);
 
 #endif

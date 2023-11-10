@@ -64,6 +64,17 @@ int main(int argc, char *argv[]) {
             // Update simulated sensor data
             for (int i = 0; i < NUM_BOTS; i++) {
                 bot[i] = simbot(bot, i, env, behavior);
+                // Run into walls
+                if (bot[i].pos.pos_x < env.wall_x) {
+                    bot[i].pos.pos_x = env.wall_x;
+                } else if (bot[i].pos.pos_x > env.wall_x + env.wall_w) {
+                    bot[i].pos.pos_x = env.wall_x + env.wall_w;
+                }
+                if (bot[i].pos.pos_y < env.wall_y) {
+                    bot[i].pos.pos_y = env.wall_y;
+                } else if (bot[i].pos.pos_y > env.wall_y + env.wall_h) {
+                    bot[i].pos.pos_y = env.wall_y + env.wall_h;
+                }
             }
 
             tigrClear(screen, tigrRGB(0x00, 0x00, 0x00));

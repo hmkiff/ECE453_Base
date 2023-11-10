@@ -45,6 +45,8 @@
 #include "cy_pdl.h"
 #include "cyhal.h"
 #include "cybsp.h"
+#include "../mtb_shared/bless/release-v3.60.0/cy_ble.h"
+#include "ble_findme.h"
 
 #include "main.h"
 #include "swarm/botstate.h"

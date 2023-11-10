@@ -157,13 +157,14 @@ void set_drive_speed_rpm(int speed_rpm)
 	set_drive_speed(duty_percent);
 }
 
-void drive_line(float distance_cm, float speed_mps){
+void drive_line(int distance_cm, float speed_mps){
 	int duty = speed_mps * MPStoDC;
 	set_drive_move_direction(1);
 	set_drive_speed(duty);
 	cyhal_system_delay_ms((distance_cm*1000)/speed_mps);
 	set_drive_speed(0);
 	set_drive_move_direction(0);
+	printf("Line Complete\r\n");
 }
 
 void drive_arc(float turn_radius, float speed_mps, int direction){
