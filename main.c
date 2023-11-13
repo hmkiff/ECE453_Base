@@ -112,6 +112,7 @@ int main(void)
 #if ENABLE_ULTRASONIC
     printf("* -- Initializing Ultrasonic Functions\n\r");
     ultrasonic_init();
+	motor_init();
 #endif
 
 printf("****************** \r\n\n");
@@ -203,39 +204,13 @@ printf("****************** \r\n\n");
 				else{
 					printf("No motor signal specified. enter signal name after CMD. 1a, 2a, 1b, 2b");
 				}
-			} else if (strncmp(pcInputString, "motorA ", 7) == 0){
+			} else if (strncmp(pcInputString, "motors ", 7) == 0){
 				char sig_str[2];
 				sig_str[0] = pcInputString[7];
 				sig_str[1] = pcInputString[8];
 				int duty = atoi(&pcInputString[10]);
-				printf("Current Motor Status\r\n");
-				print_motor(&motorA);
-				
-				if(strncmp(sig_str, "cc", 2) == 0){
-					set_drive_motor_speed(&motorA, duty);
-					set_drive_motor_direction(&motorA, 1);
-					print_motor(&motorA);
-					cyhal_system_delay_ms(5000);
-					set_drive_motor_speed(&motorA, 0);
-					print_motor(&motorA);
-					
-				}
-				else if(strncmp(sig_str, "cw", 2) == 0){
-					set_drive_motor_speed(&motorA, duty);
-					set_drive_motor_direction(&motorA, -1);
-					print_motor(&motorA);
-					cyhal_system_delay_ms(5000);
-					set_drive_motor_speed(&motorA, 0);
-					print_motor(&motorA);
-					
-				}
-				else if(strncmp(sig_str, "br", 2) == 0){
-					set_drive_motor_speed(&motorA, 0);
-					set_drive_motor_direction(&motorA, 0);
-					set_drive_motor_signal(&motorA, 1, 0);
-					set_drive_motor_signal(&motorA, 2, 0);
-					print_motor(&motorA);
-				}
+				DriveMotor(&motorA, sig_str, duty);
+				DriveMotor(&motorB, sig_str, duty);
 			} else {
 				printf("CMD fail: command not recognized.\r\n");
 			}

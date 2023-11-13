@@ -49,7 +49,7 @@
 // Pin definitions for the ECE453 Staff Dev board
 #define PIN_MOTOR_DIR   P5_0
 #define PIN_MOTOR_STEP  P5_1
-#define PIN_MOTOR_PWM   P5_2
+#define PIN_MOTOR_PWM   P9_2 // P5_2 //
 
 extern struct MOTOR{
     char name;

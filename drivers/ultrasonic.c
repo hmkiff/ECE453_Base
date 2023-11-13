@@ -36,16 +36,17 @@ void ultrasonic_trigger(void){
 
     // Start 10us trigger pulse
     cyhal_gpio_write(PIN_TRIGGER, true);
-
+    printf("Trigger Start\r\n");
     // Delay 10us
-    cyhal_system_delay_us(10);	
-
+    cyhal_system_delay_ms(10);	
+    printf("Trigger Complete\r\n");
     // Stop Pulse
-    cyhal_gpio_write(PIN_TRIGGER, true);
+    cyhal_gpio_write(PIN_TRIGGER, false);
 }
 
 // Basic pulse interpreter for Echo pins
 uint32_t ultrasonic_receive(cyhal_gpio_t echopin){
+    printf("Start Receive\r\n");
     cy_rslt_t rslt;
     uint32_t read_val;
     /* Timer object used */
@@ -63,16 +64,20 @@ uint32_t ultrasonic_receive(cyhal_gpio_t echopin){
     /* Initialize the timer object. Does not use pin output ('pin' is NC) and
      * does not use a pre-configured clock source ('clk' is NULL). */
     rslt = cyhal_timer_init(&timer_obj, NC, NULL);
+    printf("Timer Initialized\r\n");
     /* Apply timer configuration such as period, count direction, run mode, etc. */
     cyhal_timer_configure(&timer_obj, &timer_cfg);
     /* Set the frequency of timer to 10000 counts in a second or 10000 Hz */
     cyhal_timer_set_frequency(&timer_obj, 1000000);
-    
+    printf("Pre-trigger\r\n");
+    // trigger sensor signal
+    ultrasonic_trigger();
+
     // wait until echo pulse starts
     while(cyhal_gpio_read(echopin) == 0);
     /* Start the timer with the configured settings */
     cyhal_timer_start(&timer_obj);
-
+    printf("Timer Start");
     /* Read Echo PIN for High */ 
     while(cyhal_gpio_read(echopin) == 1);
     /* Read the current timer value, which should be close to the amount of delay in ms * 10 (5000) */

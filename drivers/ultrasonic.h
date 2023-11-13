@@ -18,8 +18,8 @@
 // function definitions
 
 #define PIN_TRIGGER P9_3
-#define PIN_ECHO1   P10_1
-#define PIN_ECHO2   P10_5
+#define PIN_ECHO1   P9_1 // P10_1 //
+#define PIN_ECHO2   P9_0 // P10_5 //
 
 void ultrasonic_init(void);
 void ultrasonic_trigger(void);
