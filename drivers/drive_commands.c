@@ -28,6 +28,37 @@ void singleDrive(struct MOTOR * motor, int signal, int duty){
 	set_drive_motor_signal(motor, signal, 0);
 }
 
+void DriveMotorA(char * sig_str, int duty){
+    printf("Current Motor Status\r\n");
+	print_motor(&motorA);
+	
+	if(strncmp(sig_str, "cc", 2) == 0){
+		set_drive_motor_speed(&motorA, duty);
+		set_drive_motor_direction(&motorA, 1);
+		print_motor(&motorA);
+		cyhal_system_delay_ms(5000);
+		set_drive_motor_speed(&motorA, 0);
+		print_motor(&motorA);
+		
+	}
+	else if(strncmp(sig_str, "cw", 2) == 0){
+		set_drive_motor_speed(&motorA, duty);
+		set_drive_motor_direction(&motorA, -1);
+		print_motor(&motorA);
+		cyhal_system_delay_ms(5000);
+		set_drive_motor_speed(&motorA, 0);
+		print_motor(&motorA);
+		
+	}
+	else if(strncmp(sig_str, "br", 2) == 0){
+		set_drive_motor_speed(&motorA, 0);
+		set_drive_motor_direction(&motorA, 0);
+		set_drive_motor_signal(&motorA, 1, 0);
+		set_drive_motor_signal(&motorA, 2, 0);
+		print_motor(&motorA);
+	}
+}
+
 bool isMotorString(char * str){
     char sig_str[2];
 	sig_str[0] = str[0];

@@ -2,6 +2,10 @@
 #include "io-expander.h"
 #include "../debug-tools/result_tools.h"
 
+void io_expander_set_all_out() {
+	io_expander_write_reg(0x03, 0x00);
+}
+
 void io_expander_write_reg(uint8_t reg, uint8_t value) {
     uint8_t write_buffer[2];
 
@@ -12,12 +16,10 @@ void io_expander_write_reg(uint8_t reg, uint8_t value) {
 							IO_EXPANDER_SUBORDINATE_ADDR,	// I2C Address
 							write_buffer, 					// Reg addr
 							2, 								// Number of bytes to write
-							10000, 							// Wait 10s
+							I2C_TIMEOUT, 				    // Wait 10s
 							true);							// Generate Stop Condition
 
 	if (result != CY_RSLT_SUCCESS) {
 		print_result(result);
-        CY_ASSERT(0);
-        while(1) {}
 	}
 }
