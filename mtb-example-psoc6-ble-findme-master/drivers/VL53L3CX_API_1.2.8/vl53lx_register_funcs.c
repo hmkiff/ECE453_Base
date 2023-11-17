@@ -159,14 +159,14 @@ VL53LX_Error VL53LX_get_static_nvm_managed(
 			VL53LX_I2C_SLAVE__DEVICE_ADDRESS,
 			comms_buffer,
 			VL53LX_STATIC_NVM_MANAGED_I2C_SIZE_BYTES);
-	printf("VL53LX_register_funcs VL53LX_get_static_nvm_managed: VL53LX_ReadMulti done\n\r");
+
 
 	if (status == VL53LX_ERROR_NONE)
 		status = VL53LX_i2c_decode_static_nvm_managed(
 			VL53LX_STATIC_NVM_MANAGED_I2C_SIZE_BYTES,
 			comms_buffer,
 			pdata);
-	printf("VL53LX_register_funcs VL53LX_get_static_nvm_managed: VL53LX_i2c_decode_static_nvm_managed done\n\r");
+
 
 	LOG_FUNCTION_END(status);
 

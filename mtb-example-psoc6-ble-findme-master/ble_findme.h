@@ -45,12 +45,23 @@
 #ifndef BLE_FIND_ME_H
 #define BLE_FIND_ME_H
 
+#include "cyhal.h"
+#include "cy_retarget_io.h"
+#include "cybsp.h"
+#include "cycfg_ble.h"
+#include "main.h"
+
+#define BT_MESSAGE_MAX_LEN   (100u)
+#define INT_PRIORITY_BT	3
+
+extern char btInputString[];
+extern volatile bool ALERT_BT_RX;
+
 /******************************************************************************
  * Function prototypes
  *****************************************************************************/
 void ble_findme_init(void);
 void ble_findme_process(void);
-
 
 #endif  /* BLE_FIND_ME_H */
 

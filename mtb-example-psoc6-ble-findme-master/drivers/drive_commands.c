@@ -39,3 +39,34 @@ bool isMotorString(char * str){
     }
     return false;
 }
+
+void DriveMotor(struct MOTOR * motor, char * sig_str, int duty){
+	printf("Current Motor Status\r\n");
+	print_motor(motor);
+	
+	if(strncmp(sig_str, "cc", 2) == 0){
+		set_drive_motor_speed(motor, duty);
+		set_drive_motor_direction(motor, 1);
+		print_motor(motor);
+		cyhal_system_delay_ms(5000);
+		set_drive_motor_speed(motor, 0);
+		print_motor(motor);
+		
+	}
+	else if(strncmp(sig_str, "cw", 2) == 0){
+		set_drive_motor_speed(motor, duty);
+		set_drive_motor_direction(motor, -1);
+		print_motor(motor);
+		cyhal_system_delay_ms(5000);
+		set_drive_motor_speed(motor, 0);
+		print_motor(motor);
+		
+	}
+	else if(strncmp(sig_str, "br", 2) == 0){
+		set_drive_motor_speed(motor, 0);
+		set_drive_motor_direction(motor, 0);
+		set_drive_motor_signal(motor, 1, 0);
+		set_drive_motor_signal(motor, 2, 0);
+		print_motor(motor);
+	}
+}

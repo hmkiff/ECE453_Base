@@ -43,12 +43,6 @@
  * Include header files
  *****************************************************************************/
 #include "ble_findme.h"
-#include "cyhal.h"
-#include "cybsp.h"
-#include "cy_retarget_io.h"
-#include "GeneratedSource/cycfg_ble.h"
-#include "../mtb_shared/bless/release-v3.60.0/cy_ble.h"
-#include "main.h"
 
 /*******************************************************************************
 * Macros
@@ -75,6 +69,9 @@ uint8_t BTN_COUNT = 0;
 cy_stc_ble_gatt_write_param_t *write_req_param;
 cy_stc_ble_gatts_char_val_read_req_t *read_req_param;
 
+/* Team 06 edit */
+volatile bool ALERT_BT_RX = 0;
+char btInputString[BT_MESSAGE_MAX_LEN];
 
 /*******************************************************************************
 * Function Prototypes
@@ -401,8 +398,7 @@ static void stack_event_handler(uint32_t event, void* eventParam)
             printf("[INFO] : GATT read characteristic request received \r\n");
             read_req_param = (cy_stc_ble_gatts_char_val_read_req_t *)eventParam;
 
-            if (CY_BLE_BUTTONS_USR_BTN_CHAR_HANDLE == read_req_param->attrHandle)
-            {
+            if (CY_BLE_BUTTONS_USR_BTN_CHAR_HANDLE == read_req_param->attrHandle) {
             	CY_BLE_GATT_DB_ATTR_SET_GEN_VALUE(CY_BLE_BUTTONS_USR_BTN_CHAR_HANDLE,&BTN_COUNT,1);
 
                 printf("[INFO] : BTN_COUNT %d\r\n", BTN_COUNT);
@@ -415,7 +411,7 @@ static void stack_event_handler(uint32_t event, void* eventParam)
         /* ECE453 Write Characteristic START*/
         case CY_BLE_EVT_GATTS_WRITE_CMD_REQ:
 		{
-
+            printf("[INFO] : GATT write characteristic request received \r\n");
 			write_req_param = (cy_stc_ble_gatt_write_param_t*)eventParam;
 
 			if( CY_BLE_LEDS_USR_LED_CHAR_HANDLE == write_req_param->handleValPair.attrHandle)
@@ -423,9 +419,42 @@ static void stack_event_handler(uint32_t event, void* eventParam)
 
 				printf("[INFO] : GATT write USR_LED characteristic with value: 0x%x\r\n", write_req_param->handleValPair.value.val[0]);
 
-			}
+			} else if (CY_BLE_CMD_USR_CMD_CHAR_HANDLE == write_req_param->handleValPair.attrHandle) {
+                strcpy(btInputString, write_req_param->handleValPair.value.val);
+                for (int i = 0; i < BT_MESSAGE_MAX_LEN; i++) {
+                    write_req_param->handleValPair.value.val[i] = '\0';
+                }
+                printf("[INFO] : BT Command recieved: ");
+                printf(btInputString);
+                printf("\r\n");
+
+                ALERT_BT_RX = true;
+            }
 			break;
 		}
+        /* Auth issues */
+        case CY_BLE_EVT_GAP_AUTH_REQ: {
+            printf("[INFO] : BLE Auth Requested\r\n");
+            cy_stc_ble_gap_auth_info_t sec;
+            cy_en_ble_gap_sec_level_t seclvl = CY_BLE_GAP_SEC_MODE_1 | CY_BLE_GAP_SEC_LEVEL_1;
+            sec.security = seclvl;
+            sec.ekeySize = 0;
+            sec.authErr = 0;
+            sec.bonding = CY_BLE_GAP_BONDING;
+            sec.pairingProperties = 0;
+            sec.bdHandle = 0;
+            Cy_BLE_GAPP_AuthReqReply(&sec);
+            if (sec.authErr != CY_BLE_GAP_AUTH_ERROR_NONE) {
+                printf("[INFO] : Auth error %x\r\n", sec.authErr);
+            } else {
+                printf("[INFO] : Auth success\r\n");
+            }
+            return;
+        }
+        case CY_BLE_EVT_GAP_AUTH_FAILED: {
+            printf("[INFO] : BLE Auth fail\r\n");
+            return;
+        }
         /* ECE453 Write Characteristic END*/
         default:
         {
