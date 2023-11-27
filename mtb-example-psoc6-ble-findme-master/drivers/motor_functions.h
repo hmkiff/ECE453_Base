@@ -16,10 +16,10 @@
 #include "cybsp.h"
 
 // Pin definitions for drive motors
-#define PIN_MOTOR_1A    P10_1 // P10_6
-#define PIN_MOTOR_2A    P10_0 // P10_4
-#define PIN_MOTOR_1B    P10_2 // P10_0
-#define PIN_MOTOR_2B    P10_3 // P9_4
+#define PIN_MOTOR_1A    P10_6 //P10_1 // P10_6
+#define PIN_MOTOR_2A    P10_4 //P10_0 // P10_4
+#define PIN_MOTOR_1B    P10_0 //P10_2 // P10_0
+#define PIN_MOTOR_2B    P9_4 //P10_3 // P9_4
 
 // Drive Motor PWM Frequency
 #define DRV_PWM_FREQ    20
@@ -49,7 +49,7 @@
 // Pin definitions for the ECE453 Staff Dev board
 #define PIN_MOTOR_DIR   P5_0
 #define PIN_MOTOR_STEP  P5_1
-#define PIN_MOTOR_PWM   P9_2 // P5_2 //
+#define PIN_MOTOR_PWM   P0_4 // P5_2 //
 
 extern struct MOTOR{
     char name;
