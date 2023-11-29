@@ -1,3 +1,4 @@
+
 /******************************************************************************
 * File Name: main.c
 *
@@ -73,12 +74,12 @@
 // I2C device enables
 #define ENABLE_I2C 1
 #define ENABLE_TEMP 0
-#define ENABLE_IR_MUX 0
+#define ENABLE_IR_MUX 1
 #define ENABLE_IR 1
 #define ENABLE_IO_EXPANDER 0
 // PWM device enables
-#define ENABLE_MOTOR 1
-#define ENABLE_ULTRASONIC 1
+#define ENABLE_MOTOR 0
+#define ENABLE_ULTRASONIC 0
 
 // Bot state information
 botstate state[NUM_BOTS];
@@ -109,34 +110,28 @@ int main(void) {
 	if (ENABLE_I2C) {
 		printf("* -- Initializing I2C Bus\n\r");
 		i2c_init();
-		if (ENABLE_TEMP) {
-			float temp;
-		}
-		if (ENABLE_IO_EXPANDER) {
-			printf("* -- Initializing I/O Expander\n\r");
-			uint8_t led_mask = 0x00;
-			io_expander_set_all_out();
-		}
-		if (ENABLE_IR_MUX) {
-			printf("* -- Initializing IR Mux\n\r");
-			cy_rslt_t result = cyhal_gpio_init(IR_MUX_RST_PIN, CYHAL_GPIO_DIR_OUTPUT, CYHAL_GPIO_DRIVE_STRONG, 1);
-			if (result != CY_RSLT_SUCCESS) {
-				print_result(result);
-				printf("IR Error: Unable to initialize IR Mux, see above\n\r");
-				return -1;
-			}
-			result = ir_mux_set_chnl(2);
-			if (result != CY_RSLT_SUCCESS) {
-				print_result(result);
-				printf("IR Error: Unable to initialize IR Mux, see above\n\r");
-				return -1;
-			}
-		}
 		if (ENABLE_IR) {
-			printf("* -- Initializing IR\n\r");
-			VL53LX_Error err = VL53LX_DataInit(&IR_dev_2);
-			if (err != VL53LX_ERROR_NONE) {
-				printf("CMD fail: Unable to initialize IR\r\n");
+			for (int i = 0; i < 4; i++) {
+				cy_rslt_t result = ir_mux_set_chnl(i);
+				if (result != CY_RSLT_SUCCESS) {
+					printf("IR Error: Unable to set IR channel to %i, reason:\n\r", i);
+					print_result(result);
+				}
+				bool ir_wait_boot = true;
+				if (ir_wait_boot) {
+					printf("* -- Waiting for IR %i boot\n\r", i);
+					VL53LX_Error err = VL53LX_WaitDeviceBooted(&IR_dev_2);
+					if (err != VL53LX_ERROR_NONE) {
+						printf("IR Error: Unable to detect IR %i boot, reason:\r\n", i);
+						print_IR_error(err);
+					}
+				}
+				printf("* -- Initializing IR data\n\r");
+				VL53LX_Error err = VL53LX_DataInit(&IR_dev_2);
+				if (err != VL53LX_ERROR_NONE) {
+					printf("CMD fail: Unable to initialize IR %i data, reason:\r\n", i);
+					print_IR_error(err);
+				}
 			}
 		}
 	}
@@ -213,14 +208,51 @@ int main(void) {
 					#else
 						printf("CMD fail: I2C not enabled.\r\n");
 					#endif
+				} else if (strncmp(cmdStr, "IR test", 7) == 0) {
+					uint8_t byteData;
+					uint16_t wordData;
+					VL53LX_RdByte(&IR_dev_2, 0x010F, &byteData);
+					printf("VL53LX Model_ID: %02X\n\r", byteData);
+					VL53LX_RdByte(&IR_dev_2, 0x0110, &byteData);
+					printf("VL53LX Module_Type: %02X\n\r", byteData);
+					VL53LX_RdWord(&IR_dev_2, 0x010F, &wordData);
+					printf("VL53LX: %02X\n\r", wordData);
+					i2c_test(&IR_dev_2);
 				} else if (strncmp(cmdStr, "IR read", 7) == 0) {
 					#if ENABLE_I2C
 						#if ENABLE_IR
+							int num_measurements = 5;
+							printf("CMD result: Starting IR measurement 1 of %i...\r\n", num_measurements);
 							VL53LX_Error err = VL53LX_StartMeasurement(&IR_dev_2);
 							if (err != VL53LX_ERROR_NONE) {
-								printf("CMD fail: IR encountered an error\r\n");
+								printf("CMD fail: IR encountered an error starting a measurement\r\n");
+								print_IR_error(err);
 							} else {
-								printf("CMD result: IR returned a measurement\r\n");
+								for (int i = 2; i < num_measurements; i++) {
+									printf("CMD result: IR measurement started. Waiting until ready...\r\n");
+									err = VL53LX_WaitMeasurementDataReady(&IR_dev_2);
+									if (err != VL53LX_ERROR_NONE) {
+										printf("CMD fail: IR encountered an error waiting for a measurement\r\n");
+										print_IR_error(err);
+									} else {
+										VL53LX_MultiRangingData_t data;
+										err = VL53LX_GetMultiRangingData(&IR_dev_2, &data);
+										if (err != VL53LX_ERROR_NONE) {
+											printf("CMD fail: IR encountered an error while getting measurement data\r\n");
+											print_IR_error(err);
+										} else {
+											printf("CMD result: IR sees furthest object %i mm away\r\n", data.RangeData->RangeMaxMilliMeter);
+											printf("CMD result: IR sees closest object %i mm away\r\n", data.RangeData->RangeMinMilliMeter);
+											printf("CMD result: IR sees %i objects\r\n", data.NumberOfObjectsFound);
+										}
+									}
+									printf("CMD result: Starting IR measurement %i of %i...\r\n", i, num_measurements);
+									VL53LX_Error err = VL53LX_ClearInterruptAndStartMeasurement(&IR_dev_2);
+									if (err != VL53LX_ERROR_NONE) {
+										printf("CMD fail: IR encountered an error starting a measurement\r\n");
+										print_IR_error(err);
+									}
+								}
 							}
 						#else
 							printf("CMD fail: IR not enabled.\r\n");
@@ -319,4 +351,3 @@ int main(void) {
 
 
 /* END OF FILE */
-

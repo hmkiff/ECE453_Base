@@ -344,7 +344,7 @@ VL53LX_Error VL53LX_data_init(
 			Dev,
 			VL53LX_DEVICESTATE_UNKNOWN);
 
-
+	//printf("VL53LX api core VL53LX_data_init: VL53LX_init_ll_driver_state done\n\r");
 
 	pres->range_results.max_results    = VL53LX_MAX_RANGE_RESULTS;
 	pres->range_results.active_results = 0;
@@ -409,61 +409,91 @@ VL53LX_Error VL53LX_data_init(
 
 	VL53LX_init_version(Dev);
 
+	//printf("VL53LX api core VL53LX_data_init: VL53LX_init_version done\n\r");
 
+	// Some tests: 
+	// //printf("Bins have %i\n\r", sizeof(pdev->multi_bins_rec));
+	// //printf("Int32_t have %i\n\r", sizeof(int32_t));
+	// //printf("Bin dim 1 have %i\n\r", sizeof(pdev->multi_bins_rec[0]));
+	// //printf("Bin dim 2 have %i\n\r", sizeof(pdev->multi_bins_rec[0][0]));
+	// //printf("Bin dim 3 have %i\n\r", sizeof(pdev->multi_bins_rec[0][0][0]));
+
+	// Replaced:
 	memset(pdev->multi_bins_rec, 0, sizeof(pdev->multi_bins_rec));
+
+	/*
+	for (int i = 0; i < 6; i++) {
+		for (int j = 0; j < 2; j++) {
+			for (int k = 0; k < 24; k++) {
+				pdev->multi_bins_rec[i][j][k] = 0;
+			}
+		}
+	}
+	*/
+
 	pdev->bin_rec_pos = 0;
 	pdev->pos_before_next_recom = 0;
 
 	if (read_p2p_data > 0 && status == VL53LX_ERROR_NONE)
 		status = VL53LX_read_p2p_data(Dev);
 
+	////printf("VL53LX api core VL53LX_data_init: VL53LX_read_p2p_data done\n\r");
 
 	if (status == VL53LX_ERROR_NONE)
 		status = VL53LX_init_refspadchar_config_struct(
 			&(pdev->refspadchar));
 
+	////printf("VL53LX api core VL53LX_data_init: VL53LX_init_refspadchar_config_struct done\n\r");
 
 	if (status == VL53LX_ERROR_NONE)
 		status = VL53LX_init_ssc_config_struct(
 			&(pdev->ssc_cfg));
 
+	////printf("VL53LX api core VL53LX_data_init: VL53LX_init_ssc_config_struct done\n\r");
 
 	if (status == VL53LX_ERROR_NONE)
 		status = VL53LX_init_xtalk_config_struct(
 			&(pdev->customer),
 			&(pdev->xtalk_cfg));
 
+	////printf("VL53LX api core VL53LX_data_init: VL53LX_init_xtalk_config_struct done\n\r");
 
 	if (status == VL53LX_ERROR_NONE)
 		status = VL53LX_init_xtalk_extract_config_struct(
 			&(pdev->xtalk_extract_cfg));
 
+	////printf("VL53LX api core VL53LX_data_init: VL53LX_init_xtalk_extract_config_struct done\n\r");
 
 	if (status == VL53LX_ERROR_NONE)
 		status = VL53LX_init_offset_cal_config_struct(
 		    &(pdev->offsetcal_cfg));
 
+	////printf("VL53LX api core VL53LX_data_init: VL53LX_init_offset_cal_config_struct done\n\r");
 
 	if (status == VL53LX_ERROR_NONE)
 		status = VL53LX_init_zone_cal_config_struct(
 			&(pdev->zonecal_cfg));
 
+	////printf("VL53LX api core VL53LX_data_init: VL53LX_init_zone_cal_config_struct done\n\r");
 
 	if (status == VL53LX_ERROR_NONE)
 		status = VL53LX_init_hist_post_process_config_struct(
 			pdev->xtalk_cfg.global_crosstalk_compensation_enable,
 			&(pdev->histpostprocess));
 
+	////printf("VL53LX api core VL53LX_data_init: VL53LX_init_hist_post_process_config_struct done\n\r");
 
 	if (status == VL53LX_ERROR_NONE)
 		status = VL53LX_init_hist_gen3_dmax_config_struct(
 			&(pdev->dmax_cfg));
 
+	////printf("VL53LX api core VL53LX_data_init: VL53LX_init_hist_gen3_dmax_config_struct done\n\r");
 
 	if (status == VL53LX_ERROR_NONE)
 		status = VL53LX_init_tuning_parm_storage_struct(
 			&(pdev->tuning_parms));
 
+	////printf("VL53LX api core VL53LX_data_init: VL53LX_init_tuning_parm_storage_struct done\n\r");
 
 	if (status == VL53LX_ERROR_NONE)
 		status = VL53LX_set_preset_mode(
@@ -475,30 +505,34 @@ VL53LX_Error VL53LX_data_init(
 			pdev->range_config_timeout_us,
 			pdev->inter_measurement_period_ms);
 
+	////printf("VL53LX api core VL53LX_data_init: VL53LX_set_preset_mode done\n\r");
 
 	VL53LX_init_histogram_bin_data_struct(
 			0,
 			VL53LX_HISTOGRAM_BUFFER_SIZE,
 			&(pdev->hist_data));
 
+	////printf("VL53LX api core VL53LX_data_init: VL53LX_init_histogram_bin_data_struct done\n\r");
+
 	VL53LX_init_histogram_bin_data_struct(
 			0,
 			VL53LX_HISTOGRAM_BUFFER_SIZE,
 			&(pdev->hist_xtalk));
 
+	////printf("VL53LX api core VL53LX_data_init: VL53LX_init_histogram_bin_data_struct done\n\r");
 
 	VL53LX_init_xtalk_bin_data_struct(
 			0,
 			VL53LX_XTALK_HISTO_BINS,
 			&(pdev->xtalk_shapes.xtalk_shape));
 
-
+	////printf("VL53LX api core VL53LX_data_init: VL53LX_init_xtalk_bin_data_struct done\n\r");
 
 	VL53LX_xtalk_cal_data_init(
 			Dev
 			);
 
-
+	////printf("VL53LX api core VL53LX_data_init: VL53LX_xtalk_cal_data_init done\n\r");
 
 	VL53LX_dynamic_xtalk_correction_data_init(
 			Dev
@@ -583,12 +617,14 @@ VL53LX_Error VL53LX_read_p2p_data(VL53LX_DEV Dev) {
 						Dev,
 						&(pdev->stat_nvm));
 
+	//printf("VL53LX api core VL53LX_read_p2p_data: VL53LX_get_static_nvm_managed done\n\r");
 
 	if (status == VL53LX_ERROR_NONE)
 		status = VL53LX_get_customer_nvm_managed(
 						Dev,
 						&(pdev->customer));
 
+	//printf("VL53LX api core VL53LX_read_p2p_data: VL53LX_get_customer_nvm_managed done\n\r");
 
 	if (status == VL53LX_ERROR_NONE) {
 
@@ -596,12 +632,14 @@ VL53LX_Error VL53LX_read_p2p_data(VL53LX_DEV Dev) {
 						Dev,
 						&(pdev->nvm_copy_data));
 
-
+		//printf("VL53LX api core VL53LX_read_p2p_data: VL53LX_get_nvm_copy_data done\n\r");
 
 		if (status == VL53LX_ERROR_NONE)
 			VL53LX_copy_rtn_good_spads_to_buffer(
 					&(pdev->nvm_copy_data),
 					&(pdev->rtn_good_spads[0]));
+
+		//printf("VL53LX api core VL53LX_read_p2p_data: VL53LX_copy_rtn_good_spads_to_buffer done\n\r");
 
 	}
 
@@ -620,6 +658,7 @@ VL53LX_Error VL53LX_read_p2p_data(VL53LX_DEV Dev) {
 				Dev,
 				&(pdev->optical_centre));
 
+	//printf("VL53LX api core VL53LX_read_p2p_data: VL53LX_read_nvm_optical_centre done\n\r");
 
 	if (status == VL53LX_ERROR_NONE)
 		status =
@@ -627,6 +666,7 @@ VL53LX_Error VL53LX_read_p2p_data(VL53LX_DEV Dev) {
 				Dev,
 				&(pdev->cal_peak_rate_map));
 
+	//printf("VL53LX api core VL53LX_read_p2p_data: VL53LX_read_nvm_cal_peak_rate_map done\n\r");
 
 	if (status == VL53LX_ERROR_NONE) {
 
@@ -635,7 +675,7 @@ VL53LX_Error VL53LX_read_p2p_data(VL53LX_DEV Dev) {
 				Dev,
 				&(pdev->add_off_cal_data));
 
-
+		//printf("VL53LX api core VL53LX_read_p2p_data: VL53LX_read_nvm_additional_offset_cal_data done\n\r");
 
 		if (pCD->result__mm_inner_peak_signal_count_rtn_mcps == 0 &&
 			pCD->result__mm_outer_peak_signal_count_rtn_mcps == 0) {

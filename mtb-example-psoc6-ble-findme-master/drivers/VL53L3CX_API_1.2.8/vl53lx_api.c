@@ -200,23 +200,25 @@ VL53LX_Error VL53LX_DataInit(VL53LX_DEV Dev) {
 	}
 #endif
 
-	if (Status == VL53LX_ERROR_NONE)
+	if (Status == VL53LX_ERROR_NONE) {
 		Status = VL53LX_data_init(Dev, 1);
+		printf("VL53LX api VL53LX_DataInit: VL53LX_data_init done\n\r");
+	}
 
-	printf("VL53LX api VL53LX_DataInit: VL53LX_data_init done\n\r");
-
-	if (Status == VL53LX_ERROR_NONE)
+	if (Status == VL53LX_ERROR_NONE) {
 		Status = SetPresetModeL3CX(Dev,
 			VL53LX_DISTANCEMODE_MEDIUM,
 			1000);
 
-	printf("VL53LX api VL53LX_DataInit: SetPresetModeL3CX done\n\r");
+		printf("VL53LX api VL53LX_DataInit: SetPresetModeL3CX done\n\r");
+	}
 
-	if (Status == VL53LX_ERROR_NONE)
+	if (Status == VL53LX_ERROR_NONE) {
 		Status = VL53LX_SetMeasurementTimingBudgetMicroSeconds(Dev,
 				33333);
 
-	printf("VL53LX api VL53LX_DataInit: VL53LX_SetMeasurementTimingBudgetMicroSeconds done\n\r");
+		printf("VL53LX api VL53LX_DataInit: VL53LX_SetMeasurementTimingBudgetMicroSeconds done\n\r");
+	}
 
 	if (Status == VL53LX_ERROR_NONE) {
 		pdev = VL53LXDevStructGetLLDriverHandle(Dev);
@@ -229,15 +231,14 @@ VL53LX_Error VL53LX_DataInit(VL53LX_DEV Dev) {
 	if (Status == VL53LX_ERROR_NONE) {
 		Status = VL53LX_set_dmax_mode(Dev,
 			VL53LX_DEVICEDMAXMODE__CUST_CAL_DATA);
+		printf("VL53LX api VL53LX_DataInit: VL53LX_set_dmax_mode done\n\r");
 	}
 
-	printf("VL53LX api VL53LX_DataInit: VL53LX_set_dmax_mode done\n\r");
-
-	if (Status == VL53LX_ERROR_NONE)
+	if (Status == VL53LX_ERROR_NONE) {
 		Status = VL53LX_SmudgeCorrectionEnable(Dev,
 			VL53LX_SMUDGE_CORRECTION_NONE);
-
-	printf("VL53LX api VL53LX_DataInit: VL53LX_SmudgeCorrectionEnable done\n\r");
+		printf("VL53LX api VL53LX_DataInit: VL53LX_SmudgeCorrectionEnable done\n\r");
+	}
 
 	measurement_mode  = VL53LX_DEVICEMEASUREMENTMODE_BACKTOBACK;
 	VL53LXDevDataSet(Dev, LLData.measurement_mode, measurement_mode);
@@ -254,12 +255,9 @@ VL53LX_Error VL53LX_WaitDeviceBooted(VL53LX_DEV Dev)
 {
 	VL53LX_Error Status = VL53LX_ERROR_NONE;
 
-	LOG_FUNCTION_START("");
-
 	Status = VL53LX_poll_for_boot_completion(Dev,
 			VL53LX_BOOT_COMPLETION_POLLING_TIMEOUT_MS);
-
-	LOG_FUNCTION_END(Status);
+	printf("VL53LX api VL53LX_WaitDeviceBooted: VL53LX_poll_for_boot_completion done\n\r");
 	return Status;
 }
 

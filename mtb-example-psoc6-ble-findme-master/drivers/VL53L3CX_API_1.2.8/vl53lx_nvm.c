@@ -14,7 +14,7 @@
 
 
 #ifdef _MSC_VER
-#define snprintf _snprintf
+#define sn//printf _sn//printf
 #endif
 
 
@@ -1408,7 +1408,7 @@ VL53LX_Error VL53LX_read_nvm_optical_centre(
 					>> 2),
 			nvm_data);
 
-	printf("VL53LX_nvm VL53LX_read_nvm_optical_centre: VL53LX_read_nvm_raw_data done\n\r");
+	//printf("VL53LX_nvm VL53LX_read_nvm_optical_centre: VL53LX_read_nvm_raw_data done\n\r");
 
 	if (status == VL53LX_ERROR_NONE)
 		status =
@@ -1417,7 +1417,7 @@ VL53LX_Error VL53LX_read_nvm_optical_centre(
 				nvm_data,
 				pcentre);
 
-	printf("VL53LX_nvm VL53LX_read_nvm_optical_centre: VL53LX_nvm_decode_optical_centre done\n\r");
+	//printf("VL53LX_nvm VL53LX_read_nvm_optical_centre: VL53LX_nvm_decode_optical_centre done\n\r");
 
 	LOG_FUNCTION_END(status);
 

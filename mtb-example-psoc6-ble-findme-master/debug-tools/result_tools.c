@@ -222,3 +222,100 @@ void print_result(cy_rslt_t result) {
         result, module, type, code);
         
 }
+
+void print_IR_error(VL53LX_Error error) {
+    if (error == VL53LX_ERROR_BUFFER_TOO_SMALL) {
+        printf("IR Error: Buffer too small\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_CONTROL_INTERFACE) {
+        printf("IR Error: Control interface error\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_CALIBRATION_WARNING) {
+        printf("IR Error: Calibration warning\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_COMMS_BUFFER_TOO_SMALL) {
+        printf("IR Error: Comms buffer too small\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_DIVISION_BY_ZERO) {
+        printf("IR Error: Division by zero\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_GPH_ID_CHECK_FAIL) {
+        printf("IR Error: Stream count check fail\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_GPH_SYNC_CHECK_FAIL) {
+        printf("IR Error: Error during SPAD init\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_GPIO_FUNCTIONALITY_NOT_SUPPORTED) {
+        printf("IR Error: Tried to use a GPIO that is not supported\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_GPIO_NOT_EXISTING) {
+        printf("IR Error: Tried to use a GPIO that does not exist\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_INVALID_COMMAND) {
+        printf("IR Error: Invalid command\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_INVALID_PARAMS) {
+        printf("IR Error: Invalid parameters\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_MIN_CLIPPED) {
+        printf("IR Error: Invalid calibration data in use\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_MODE_NOT_SUPPORTED) {
+        printf("IR Error: Mode not supported\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_NONE) {
+        printf("IR Error: No error (check for VL53LX_ERROR_NONE before calling print_IR_error)\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_NOT_IMPLEMENTED) {
+        printf("IR Error: Not implemented\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_NOT_SUPPORTED) {
+        printf("IR Error: Not supported\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_OFFSET_CAL_NO_SAMPLE_FAIL) {
+        printf("IR Error: Offset calibration number of samples failure\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_OFFSET_CAL_NO_SPADS_ENABLED_FAIL) {
+        printf("IR Error: Offset calibration no SPADs enabled failure\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_PLATFORM_SPECIFIC_START) {
+        printf("IR Error: Platform start error\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_RANGE_ERROR) {
+        printf("IR Error: Range error\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_REF_SPAD_INIT) {
+        printf("IR Error: Reference SPAD init failure\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_STREAM_COUNT_CHECK_FAIL) {
+        printf("IR Error: Stream count check failure\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_TIME_OUT) {
+        printf("IR Error: Timed out\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_TUNING_PARM_KEY_MISMATCH) {
+        printf("IR Error: Tuning parameter key mismatch\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_UNDEFINED) {
+        printf("IR Error: Undefined error\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_XTALK_EXTRACTION_NO_SAMPLE_FAIL) {
+        printf("IR Error: Crosstalk extraction no sample failure\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_XTALK_EXTRACTION_SIGMA_LIMIT_FAIL) {
+        printf("IR Error: Crosstalk extraction sigma limit failure\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_ZONE_CAL_NO_SAMPLE_FAIL) {
+        printf("IR Error: Zone calibration no sample failure\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_ZONE_GPH_ID_CHECK_FAIL) {
+        printf("IR Error: Zone calibration GPH ID check failure\r\n");
+        return;
+    } else if (error == VL53LX_ERROR_ZONE_STREAM_COUNT_CHECK_FAIL) {
+        printf("IR Error: Zone calibration stream count check failure\r\n");
+        return;
+    } else {
+        printf("IR Error: Unknown error\r\n");
+        return;
+    }
+}
