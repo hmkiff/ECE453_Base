@@ -44,10 +44,11 @@ void drive_motor_init(void)
 
 void set_drive_motor_signal(struct MOTOR *motor, int signal, int duty)
 {
+	//printf("Here! \r\n");
 	// obtain reference to motor's pwm signal.
 	int signal_index = signal - 1;
 	cyhal_pwm_t * drive_pwm_obj = motor->motor_pwm[signal_index];
-
+	//printf("Signal_Index: %d \r\n", signal_index);
 	// stop signal briefly before changing it
 	cyhal_pwm_stop(drive_pwm_obj);
 
@@ -68,9 +69,11 @@ void set_drive_motor_direction(struct MOTOR *motor, int direction)
 		set_drive_motor_signal(motor, 2, 0);
 	}
 	else if(direction > 0){		// counter-clockwise
+		//printf("CounterClockwise Motor Direction \r\n");
 		motor->direction = 1;
-		set_drive_motor_signal(motor, 1, 0);
 		set_drive_motor_signal(motor, 2, motor->duty);
+		set_drive_motor_signal(motor, 1, 0);
+		
 	}
 	else{
 		motor->direction = 0;	// powered brake

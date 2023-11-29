@@ -65,10 +65,10 @@
 // SPI device enables
 #define ENABLE_SPI 0
 // I2C device enables
-#define ENABLE_I2C 1
+#define ENABLE_I2C 0
 #define ENABLE_TEMP 0
 #define ENABLE_IR_MUX 0
-#define ENABLE_IR 1
+#define ENABLE_IR 0
 #define ENABLE_IO_EXPANDER 0
 // PWM device enables
 #define ENABLE_MOTOR 1

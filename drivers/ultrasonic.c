@@ -91,3 +91,24 @@ float ultrasonic_get_object_distance(cyhal_gpio_t echopin){
     float cm_distance = 0.0343 * time_us;
     return cm_distance;
 }
+
+
+// Ultrasonic Object Position Steps
+// Obtain both distances
+
+// Compare which is longer
+
+// Solve for alpha (the angle between short distance and sensor board)
+// alpha = arccos( (Lshort^2 + delta^2 - Llong^2) / (2*Lshort*delta) )
+
+// Solve for R, the radius from center of board (center of robot) to object
+// R = sqrt( Lshort^2 + (delta/2)^2 - 2*(delta/2)*Lshort*cos(alpha) )
+
+//Solve for phi
+// phi = arcsin( (delta*sin(alpha)) / 2*R )
+
+// Localize with position vector (R, phi)
+
+// Change reference frame from sensor board frame to robot frame
+
+// Convert to X Y coordinates 
