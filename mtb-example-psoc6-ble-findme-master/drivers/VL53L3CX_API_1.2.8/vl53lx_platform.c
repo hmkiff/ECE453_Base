@@ -17,7 +17,7 @@
 #include <string.h>
 
 #ifdef _MSC_VER
-#define snprintf _snprintf
+#define sn//printf _sn//printf
 #endif
 
 #include "../i2c.h"
@@ -80,10 +80,10 @@ VL53LX_Error VL53LX_CommsClose(
 		}
 	} else if (global_comms_type == VL53LX_SPI) {
 		// SPI not ported
-		printf("VL53LX_CommsInitialise Error: SPI not ported\n\r");
+		//printf("VL53LX_CommsInitialise Error: SPI not ported\n\r");
 		status = VL53LX_ERROR_CONTROL_INTERFACE;
 	} else {
-		printf("VL53LX_CommsInitialise Error: Comms must be one of VL53LX_I2C or VL53LX_SPI\n");
+		//printf("VL53LX_CommsInitialise Error: Comms must be one of VL53LX_I2C or VL53LX_SPI\n");
 		status = VL53LX_ERROR_CONTROL_INTERFACE;
 	}
 
@@ -166,10 +166,10 @@ VL53LX_Error VL53LX_WriteMulti(
 		}
 	} else if (global_comms_type == VL53LX_SPI) {
 		// SPI not ported
-		printf("VL53LX_CommsInitialise Error: SPI not ported\n\r");
+		//printf("VL53LX_CommsInitialise Error: SPI not ported\n\r");
 		status = VL53LX_ERROR_CONTROL_INTERFACE;
 	} else {
-		printf("VL53LX_CommsInitialise Error: Comms must be one of VL53LX_I2C or VL53LX_SPI\n");
+		//printf("VL53LX_CommsInitialise Error: Comms must be one of VL53LX_I2C or VL53LX_SPI\n");
 		status = VL53LX_ERROR_CONTROL_INTERFACE;
 	}
 
@@ -218,10 +218,10 @@ VL53LX_Error VL53LX_ReadMulti(
 
 	} else if (global_comms_type == VL53LX_SPI) {
 		// SPI not ported
-		printf("VL53LX_CommsInitialise Error: SPI not ported\n\r");
+		//printf("VL53LX_CommsInitialise Error: SPI not ported\n\r");
 		status = VL53LX_ERROR_CONTROL_INTERFACE;
 	} else {
-		printf("VL53LX_CommsInitialise Error: Comms must be one of VL53LX_I2C or VL53LX_SPI\n");
+		//printf("VL53LX_CommsInitialise Error: Comms must be one of VL53LX_I2C or VL53LX_SPI\n");
 		status = VL53LX_ERROR_CONTROL_INTERFACE;
 	}
 
@@ -341,62 +341,62 @@ VL53LX_Error VL53LX_WaitMs(
 VL53LX_Error VL53LX_GetTimerFrequency(int32_t *ptimer_freq_hz) {
 	*ptimer_freq_hz = 0;
 
-	printf("VL53LX_GetTimerFrequency: Freq : %ldHz\n", *ptimer_freq_hz);
+	//printf("VL53LX_GetTimerFrequency: Freq : %ldHz\n", *ptimer_freq_hz);
 	return VL53LX_ERROR_NONE;
 }
 
 VL53LX_Error VL53LX_GetTimerValue(int32_t *ptimer_count) {
 	*ptimer_count = 0;
 
-	printf("VL53LX_GetTimerValue: Freq : %ldHz\n", *ptimer_count);
+	//printf("VL53LX_GetTimerValue: Freq : %ldHz\n", *ptimer_count);
 	return VL53LX_ERROR_NONE;
 }
 
 VL53LX_Error VL53LX_GpioSetMode(uint8_t pin, uint8_t mode) {
-	printf("VL53LX_GpioSetMode: Not implemented");
+	//printf("VL53LX_GpioSetMode: Not implemented");
 	return VL53LX_ERROR_CONTROL_INTERFACE;
 }
 
 
 VL53LX_Error  VL53LX_GpioSetValue(uint8_t pin, uint8_t value) {
-	printf("VL53LX_GpioSetValue: Not implemented");
+	//printf("VL53LX_GpioSetValue: Not implemented");
 	return VL53LX_ERROR_CONTROL_INTERFACE;
 }
 
 VL53LX_Error VL53LX_GpioGetValue(uint8_t pin, uint8_t *pvalue) {
-	printf("VL53LX_GpioGetValue: Not implemented");
+	//printf("VL53LX_GpioGetValue: Not implemented");
 	return VL53LX_ERROR_CONTROL_INTERFACE;
 }
 
 VL53LX_Error VL53LX_GpioXshutdown(uint8_t value) {
-	printf("VL53LX_GpioXshutdown: Not implemented");
+	//printf("VL53LX_GpioXshutdown: Not implemented");
 	return VL53LX_ERROR_CONTROL_INTERFACE;
 }
 
 VL53LX_Error VL53LX_GpioCommsSelect(uint8_t value) {
-	printf("VL53LX_GpioCommsSelect: Not implemented");
+	//printf("VL53LX_GpioCommsSelect: Not implemented");
 	return VL53LX_ERROR_CONTROL_INTERFACE;
 }
 
 VL53LX_Error  VL53LX_GpioPowerEnable(uint8_t value) {
-	printf("VL53LX_GpioPowerEnable: Not implemented");
+	//printf("VL53LX_GpioPowerEnable: Not implemented");
 	return VL53LX_ERROR_CONTROL_INTERFACE;
 }
 
 VL53LX_Error  VL53LX_GpioInterruptEnable(void (*function)(void), uint8_t edge_type) {
-	printf("VL53LX_GpioInterruptEnable: Not implemented");
+	//printf("VL53LX_GpioInterruptEnable: Not implemented");
 	return VL53LX_ERROR_CONTROL_INTERFACE;
 }
 
 VL53LX_Error  VL53LX_GpioInterruptDisable(void) {
-	printf("VL53LX_GpioInterruptEnable: Not implemented");
+	//printf("VL53LX_GpioInterruptEnable: Not implemented");
 	return VL53LX_ERROR_CONTROL_INTERFACE;
 }
 
 void VL53LX_StartTickCount() {
 	cy_rslt_t rslt = cyhal_timer_init(&IR_poll_timer, NC, NULL);
 	if (rslt != CY_RSLT_SUCCESS) {
-		printf("IR error: Unable to initialize IR polling timer, see error below\r\n");
+		//printf("IR error: Unable to initialize IR polling timer, see error below\r\n");
 		print_result(rslt);
 		return;
 	}
@@ -410,21 +410,21 @@ void VL53LX_StartTickCount() {
 
 	rslt = cyhal_timer_configure(&IR_poll_timer, &cfg);
 	if (rslt != CY_RSLT_SUCCESS) {
-		printf("IR error: Unable to configure IR polling timer, see error below\r\n");
+		//printf("IR error: Unable to configure IR polling timer, see error below\r\n");
 		print_result(rslt);
 		return;
 	}
 
 	rslt = cyhal_timer_set_frequency(&IR_poll_timer, 1000);
 	if (rslt != CY_RSLT_SUCCESS) {
-		printf("IR error: Unable to set frequency of IR polling timer, see error below\r\n");
+		//printf("IR error: Unable to set frequency of IR polling timer, see error below\r\n");
 		print_result(rslt);
 		return;
 	}
 
 	rslt = cyhal_timer_start(&IR_poll_timer);
 	if (rslt != CY_RSLT_SUCCESS) {
-		printf("IR error: Unable to start IR polling timer, see error below\r\n");
+		//printf("IR error: Unable to start IR polling timer, see error below\r\n");
 		print_result(rslt);
 		return;
 	}
@@ -484,7 +484,7 @@ VL53LX_Error VL53LX_WaitValueMaskEx(
 		}
 
 		VL53LX_GetTickCount(pdev, &current_time_ms);
-		printf("IR polling time is %li ms.\r\n", current_time_ms);
+		//printf("IR polling time is %li ms.\r\n", current_time_ms);
 		pdev->new_data_ready_poll_duration_ms = current_time_ms - start_time_ms;
 	}
 	VL53LX_EndTickCount();
