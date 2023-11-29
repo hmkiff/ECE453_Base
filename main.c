@@ -47,17 +47,37 @@
 #include "cybsp.h"
 
 #include "main.h"
+#include "swarm/botstate.h"
+#include "swarm/swarm.h"
 
-// Enables
-#define ENABLE_I2C 0
+// Enables --------------------
+
+// Debug console mode
+#define DEBUG_CONSOLE_MODE 1
+
+// Simbot enables
+// Should this PSoC6 board fake sensor data?
+#define SIMBOT_HOST 0
+// If SIMBOT_HOST is 1, how many bots should be faked?
+#define NUM_SIMBOTS 3
+
+// Device enables
+// SPI device enables
 #define ENABLE_SPI 0
+// I2C device enables
+#define ENABLE_I2C 1
 #define ENABLE_TEMP 0
+#define ENABLE_IR_MUX 0
+#define ENABLE_IR 1
 #define ENABLE_IO_EXPANDER 0
+// PWM device enables
 #define ENABLE_MOTOR 1
 #define ENABLE_ULTRASONIC 1
 
-int main(void)
-{
+// Bot state information
+botstate state[NUM_BOTS];
+
+int main(void) {
 	float temp;
 	uint8_t led_mask = 0x00;
 
@@ -78,13 +98,32 @@ int main(void)
     /* Enable global interrupts */
     	__enable_irq();
 
+// I2C-based devices init
 #if ENABLE_I2C
     printf("* -- Initializing I2C Bus\n\r");
     i2c_init();
+	#if ENABLE_TEMP
+		float temp;
+	#endif
 	#if ENABLE_IO_EXPANDER
 		printf("* -- Initializing I/O Expander\n\r");
-		io_expander_write_reg(0x03, 0x00); 	// Set all pins as outputs
-		io_expander_write_reg(0x01, 0xFF); 	// Turn on all LEDs
+		uint8_t led_mask = 0x00;
+		io_expander_set_all_out();
+	#endif
+	#if ENABLE_IR_MUX
+		printf("* -- Initializing IR Mux\n\r");
+		cy_rslt_t result = cyhal_gpio_init(IR_MUX_RST_PIN, CYHAL_GPIO_DIR_OUTPUT, CYHAL_GPIO_DRIVE_STRONG, 1);
+		if (result != CY_RSLT_SUCCESS) {
+			print_result(result);
+			printf("IR Error: Unable to initialize IR Mux, see above\n\r");
+			return -1;
+		}
+		result = ir_mux_set_chnl(2);
+		if (result != CY_RSLT_SUCCESS) {
+			print_result(result);
+			printf("IR Error: Unable to initialize IR Mux, see above\n\r");
+			return -1;
+		}
 	#endif
 #endif
 
@@ -112,7 +151,7 @@ int main(void)
 #if ENABLE_ULTRASONIC
     printf("* -- Initializing Ultrasonic Functions\n\r");
     ultrasonic_init();
-	motor_init();
+    motor_init();
 #endif
 
 printf("****************** \r\n\n");
