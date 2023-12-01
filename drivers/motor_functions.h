@@ -76,10 +76,10 @@ void set_drive_motor_signal(struct MOTOR * motor, int signal, int duty);
 void kill_motor_signal();
 
 // sets spin direction of single motor
-void set_motor_direction(MOTOR *motor, int direction);
+void set_motor_direction(struct MOTOR *motor, int direction);
 
 // set duty cycle of single motor
-void set_motor_duty(MOTOR *motor, int duty);
+void set_motor_duty(struct MOTOR *motor, int duty);
 
 // set travel direction, forward/reverse/brake
 void set_drive_direction(int direction);

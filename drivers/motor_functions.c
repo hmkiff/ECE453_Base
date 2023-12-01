@@ -118,8 +118,8 @@ void set_drive_duty(int duty){
 void drive_update(){
 	set_drive_motor_signal(&motorA, 1, motorA.sig1active * motorA.duty);
 	set_drive_motor_signal(&motorA, 2, motorA.sig2active * motorA.duty);
-	set_drive_motor_signal(&motorA, 1, motorB.sig1active * motorA.duty);
-	set_drive_motor_signal(&motorA, 2, motorB.sig2active * motorA.duty);
+	set_drive_motor_signal(&motorB, 1, motorB.sig1active * motorB.duty);
+	set_drive_motor_signal(&motorB, 2, motorB.sig2active * motorB.duty);
 }
 
 
