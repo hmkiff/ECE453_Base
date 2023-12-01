@@ -23,6 +23,13 @@ void ir_boot() {
                 if (err != VL53LX_ERROR_NONE) {
                     printf("CMD fail: Unable to initialize IR %i data, reason:\r\n", i);
                     print_IR_error(err);
+                } else {
+                    printf("* -- Starting IR %i measurement\n\r", i);
+                    err = VL53LX_StartMeasurement(&boot_dev);
+                    if (err != VL53LX_ERROR_NONE) {
+                        printf("CMD fail: Unable to start IR %i, reason:\r\n", i);
+                        print_IR_error(err);
+                    }
                 }
             }
             IR_dev[i] = boot_dev;
@@ -81,7 +88,7 @@ void ir_read(int dev_num, int num_measurements, bool verbose) {
     if (verbose) {
         printf("IR Info: Starting IR measurement 1 of %i...\r\n", num_measurements);
     }
-    VL53LX_Error err = VL53LX_StartMeasurement(&measure_dev);
+    VL53LX_Error err = VL53LX_ClearInterruptAndStartMeasurement(&measure_dev);
     if (err != VL53LX_ERROR_NONE) {
         printf("IR Error: Failed to start a measurement, reason:\r\n");
         print_IR_error(err);
@@ -105,6 +112,7 @@ void ir_read(int dev_num, int num_measurements, bool verbose) {
                         printf("IR Info: Furthest object is %i mm away\r\n", data.RangeData->RangeMaxMilliMeter);
                         printf("IR Info: Closest object is %i mm away\r\n", data.RangeData->RangeMinMilliMeter);
                         printf("IR Info: IR sees %i objects\r\n", data.NumberOfObjectsFound);
+                        printf("IR Info: Status: %i\r\n", data.RangeData->RangeStatus);
                     }
                 }
             }
