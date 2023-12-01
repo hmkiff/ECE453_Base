@@ -48,6 +48,7 @@ void set_drive_motor_signal(struct MOTOR *motor, int signal, int duty)
 	// obtain reference to motor's pwm signal.
 	int signal_index = signal - 1;
 	cyhal_pwm_t * drive_pwm_obj = motor->motor_pwm[signal_index];
+	printf("Name: %c, Signal: %d, Duty %d \r\n", motor->name, signal_index, duty);
 	//printf("Signal_Index: %d \r\n", signal_index);
 	// stop signal briefly before changing it
 	cyhal_pwm_stop(drive_pwm_obj);
@@ -65,14 +66,15 @@ void set_drive_motor_direction(struct MOTOR *motor, int direction)
 	// direction -1 clockwise, 0 brake, 1 counter-clockwise
 	if(direction < 0){			// clockwise
 		motor->direction = -1;
+		printf("CW - two signal calls \r\n");
 		set_drive_motor_signal(motor, 1, motor->duty);
 		set_drive_motor_signal(motor, 2, 0);
 	}
 	else if(direction > 0){		// counter-clockwise
-		//printf("CounterClockwise Motor Direction \r\n");
+		printf("CC - two signal calls \r\n");
 		motor->direction = 1;
-		set_drive_motor_signal(motor, 2, motor->duty);
 		set_drive_motor_signal(motor, 1, 0);
+		set_drive_motor_signal(motor, 2, motor->duty);
 		
 	}
 	else{
@@ -88,10 +90,12 @@ void set_drive_motor_speed(struct MOTOR *motor, int duty)
 	int direction = motor->direction;
 	motor->duty = duty;
 	if(direction < 0){		// clockwise
+		printf("CW - motor speed \r\n");
 		set_drive_motor_signal(motor, 1, duty);
 		set_drive_motor_signal(motor, 2, 0);
 	}
 	else if(direction > 0){	// counter-clockwise
+		printf("CC - motor speed \r\n");
 		set_drive_motor_signal(motor, 1, 0);
 		set_drive_motor_signal(motor, 2, duty);
 	}
@@ -148,8 +152,8 @@ void set_drive_turn_direction(int turn_dir)
 void set_drive_speed(int duty)
 {
 	int duty_percent = duty;
-	if(duty > 100) duty_percent = 100;
-	else if(duty < 0) duty_percent = 0;
+	if(duty > 100) 	  { duty_percent = 100; }
+	else if(duty < 0) { duty_percent = 0; }
 	set_drive_motor_speed(&motorA, duty_percent);
 	set_drive_motor_speed(&motorB, duty_percent);
 }

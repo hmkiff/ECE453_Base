@@ -29,4 +29,6 @@ bool isMotorString(char * str);
 
 void DriveMotor(struct MOTOR * motor, char * sig_str, int duty);
 
+void DriveBot(char * sig_str, int duty);
+
 #endif

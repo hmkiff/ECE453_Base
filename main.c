@@ -226,7 +226,9 @@ printf("****************** \r\n\n");
 				} else {
 			  		printf("CMD fail: command not recognized.\r\n");
 			  	}
-			
+				cInputIndex = 0;
+				ALERT_CONSOLE_RX = false;
+			}
 		} else if (SIMBOT_HOST == 1) {
 			
 		} else {
