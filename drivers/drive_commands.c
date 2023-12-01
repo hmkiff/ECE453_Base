@@ -16,7 +16,7 @@ void * charToMotor(char c){
 
 void singleDrive(struct MOTOR * motor, int signal, int duty){
 
-    int duration = 10;
+    int duration = 5;
 	printf("Running motor signal %d%c at %d%% for %d seconds.\r\n", signal, motor->name, duty, duration);
     set_drive_motor_signal(motor, signal, duty);
     print_motor(motor);
@@ -26,37 +26,6 @@ void singleDrive(struct MOTOR * motor, int signal, int duty){
     }
 	printf("Ending motor signal %d%c.\r\n", signal, motor->name);
 	set_drive_motor_signal(motor, signal, 0);
-}
-
-void DriveMotorA(char * sig_str, int duty){
-    printf("Current Motor Status\r\n");
-	print_motor(&motorA);
-	
-	if(strncmp(sig_str, "cc", 2) == 0){
-		set_drive_motor_speed(&motorA, duty);
-		set_drive_motor_direction(&motorA, 1);
-		print_motor(&motorA);
-		cyhal_system_delay_ms(5000);
-		set_drive_motor_speed(&motorA, 0);
-		print_motor(&motorA);
-		
-	}
-	else if(strncmp(sig_str, "cw", 2) == 0){
-		set_drive_motor_speed(&motorA, duty);
-		set_drive_motor_direction(&motorA, -1);
-		print_motor(&motorA);
-		cyhal_system_delay_ms(5000);
-		set_drive_motor_speed(&motorA, 0);
-		print_motor(&motorA);
-		
-	}
-	else if(strncmp(sig_str, "br", 2) == 0){
-		set_drive_motor_speed(&motorA, 0);
-		set_drive_motor_direction(&motorA, 0);
-		set_drive_motor_signal(&motorA, 1, 0);
-		set_drive_motor_signal(&motorA, 2, 0);
-		print_motor(&motorA);
-	}
 }
 
 bool isMotorString(char * str){
@@ -76,26 +45,26 @@ void DriveMotor(struct MOTOR * motor, char * sig_str, int duty){
 	print_motor(motor);
 	
 	if(strncmp(sig_str, "cc", 2) == 0){
-		set_drive_motor_speed(motor, duty);
-		set_drive_motor_direction(motor, 1);
+		set_motor_duty(motor, duty);
+		set_motor_direction(motor, 1);
 		print_motor(motor);
 		cyhal_system_delay_ms(5000);
-		set_drive_motor_speed(motor, 0);
+		set_motor_duty(motor, 0);
 		print_motor(motor);
 		
 	}
 	else if(strncmp(sig_str, "cw", 2) == 0){
-		set_drive_motor_speed(motor, duty);
-		set_drive_motor_direction(motor, -1);
+		set_motor_duty(motor, duty);
+		set_motor_direction(motor, -1);
 		print_motor(motor);
 		cyhal_system_delay_ms(5000);
-		set_drive_motor_speed(motor, 0);
+		set_motor_duty(motor, 0);
 		print_motor(motor);
 		
 	}
 	else if(strncmp(sig_str, "br", 2) == 0){
-		set_drive_motor_speed(motor, 0);
-		set_drive_motor_direction(motor, 0);
+		set_motor_duty(motor, 0);
+		set_motor_direction(motor, 0);
 		set_drive_motor_signal(motor, 1, 0);
 		set_drive_motor_signal(motor, 2, 0);
 		print_motor(motor);
@@ -108,25 +77,58 @@ void DriveBot(char * sig_str, int duty){
 	print_motor(&motorB);
 	
 	if(strncmp(sig_str, "fr", 2) == 0){
-		set_drive_speed(duty);
-		set_drive_move_direction(FORWARD);
+		set_drive_duty(duty);
+		set_drive_direction(FORWARD);
 		print_motor(&motorA);
 		print_motor(&motorB);
 		cyhal_system_delay_ms(2000);
-		set_drive_speed(0);
+		set_drive_duty(0);
 	}
 	else if(strncmp(sig_str, "bk", 2) == 0){
-		set_drive_speed(duty);
-		set_drive_move_direction(REVERSE);
+		set_drive_duty(duty);
+		set_drive_direction(REVERSE);
 		print_motor(&motorA);
 		print_motor(&motorB);
 		cyhal_system_delay_ms(2000);
-		set_drive_speed(0);
+		set_drive_duty(0);
 	}
 	else if(strncmp(sig_str, "br", 2) == 0){
-		set_drive_move_direction(0);
-		set_drive_speed(0);
+		set_drive_direction(0);
+		set_drive_duty(0);
 	}
 	print_motor(&motorA);
 	print_motor(&motorB);
 }
+
+
+
+// void DriveMotorA(char * sig_str, int duty){
+//     printf("Current Motor Status\r\n");
+// 	print_motor(&motorA);
+	
+// 	if(strncmp(sig_str, "cc", 2) == 0){
+// 		set_drive_motor_speed(&motorA, duty);
+// 		set_drive_motor_direction(&motorA, 1);
+// 		print_motor(&motorA);
+// 		cyhal_system_delay_ms(5000);
+// 		set_drive_motor_speed(&motorA, 0);
+// 		print_motor(&motorA);
+		
+// 	}
+// 	else if(strncmp(sig_str, "cw", 2) == 0){
+// 		set_drive_motor_speed(&motorA, duty);
+// 		set_drive_motor_direction(&motorA, -1);
+// 		print_motor(&motorA);
+// 		cyhal_system_delay_ms(5000);
+// 		set_drive_motor_speed(&motorA, 0);
+// 		print_motor(&motorA);
+		
+// 	}
+// 	else if(strncmp(sig_str, "br", 2) == 0){
+// 		set_drive_motor_speed(&motorA, 0);
+// 		set_drive_motor_direction(&motorA, 0);
+// 		set_drive_motor_signal(&motorA, 1, 0);
+// 		set_drive_motor_signal(&motorA, 2, 0);
+// 		print_motor(&motorA);
+// 	}
+// }

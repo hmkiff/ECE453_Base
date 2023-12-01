@@ -18,8 +18,8 @@ cyhal_pwm_t drive2A_pwm_obj;
 cyhal_pwm_t drive1B_pwm_obj;
 cyhal_pwm_t drive2B_pwm_obj;
 
-struct MOTOR motorA = {.name = 'a', .motor_pwm[0] = &drive1A_pwm_obj, .motor_pwm[1] = &drive2A_pwm_obj, .duty = 0, .direction = 0};
-struct MOTOR motorB = {.name = 'b', .motor_pwm[0] = &drive1B_pwm_obj, .motor_pwm[1] = &drive2B_pwm_obj, .duty = 0, .direction = 0};
+struct MOTOR motorA = {.name = 'a', .motor_pwm[0] = &drive1A_pwm_obj, .motor_pwm[1] = &drive2A_pwm_obj, .duty = 0, .direction = 0, .sig1active = 0, .sig2active = 0};
+struct MOTOR motorB = {.name = 'b', .motor_pwm[0] = &drive1B_pwm_obj, .motor_pwm[1] = &drive2B_pwm_obj, .duty = 0, .direction = 0, .sig1active = 0, .sig2active = 0};
 
 // Drive motor functions
 
@@ -44,152 +44,116 @@ void drive_motor_init(void)
 
 void set_drive_motor_signal(struct MOTOR *motor, int signal, int duty)
 {
-	//printf("Here! \r\n");
+
 	// obtain reference to motor's pwm signal.
 	int signal_index = signal - 1;
 	cyhal_pwm_t * drive_pwm_obj = motor->motor_pwm[signal_index];
 	printf("Name: %c, Signal: %d, Duty %d \r\n", motor->name, signal_index, duty);
-	//printf("Signal_Index: %d \r\n", signal_index);
+
 	// stop signal briefly before changing it
 	cyhal_pwm_stop(drive_pwm_obj);
 
 	// set duty cycle to duty
-	//motor->duty = duty;
 	cyhal_pwm_set_duty_cycle(drive_pwm_obj, duty, DRV_PWM_FREQ);
 	
 	// Start the PWM output
     cyhal_pwm_start(drive_pwm_obj);
 }
 
-void set_drive_motor_direction(struct MOTOR *motor, int direction)
-{
-	// direction -1 clockwise, 0 brake, 1 counter-clockwise
-	if(direction < 0){			// clockwise
-		motor->direction = -1;
-		printf("CW - two signal calls \r\n");
-		set_drive_motor_signal(motor, 1, motor->duty);
-		set_drive_motor_signal(motor, 2, 0);
-	}
-	else if(direction > 0){		// counter-clockwise
-		printf("CC - two signal calls \r\n");
-		motor->direction = 1;
-		set_drive_motor_signal(motor, 1, 0);
-		set_drive_motor_signal(motor, 2, motor->duty);
-		
-	}
-	else{
-		motor->direction = 0;	// powered brake
-		set_drive_motor_signal(motor, 1, 0);
-		set_drive_motor_signal(motor, 2, 0);
-	}
-
+void kill_motor_signal(){
+	cyhal_pwm_stop(motorA.motor_pwm[0]);
+	cyhal_pwm_stop(motorA.motor_pwm[0]);
+	cyhal_pwm_stop(motorB.motor_pwm[0]);
+	cyhal_pwm_stop(motorB.motor_pwm[0]);
 }
 
-void set_drive_motor_speed(struct MOTOR *motor, int duty)
-{
-	int direction = motor->direction;
+void set_motor_direction(struct MOTOR *motor, int direction){
+	motor->direction = direction;
+
+	// counter-clockwise
+	if(direction > 0){
+		motor->sig1active = 1;
+		motor->sig2active = 0;
+	}
+	// clockwise
+	else if(direction < 0){
+		motor->sig1active = 0;
+		motor->sig2active = 1;
+	}
+	// brake
+	else if(direction = 0){
+		motor->sig1active = 0;
+		motor->sig2active = 0;
+	}
+}
+
+void set_motor_duty(struct MOTOR *motor, int duty){
 	motor->duty = duty;
-	if(direction < 0){		// clockwise
-		printf("CW - motor speed \r\n");
-		set_drive_motor_signal(motor, 1, duty);
-		set_drive_motor_signal(motor, 2, 0);
+}
+
+void set_drive_direction(int direction){
+	
+	// forward
+	if(direction > 0){
+		set_motor_direction(&motorA, 1);
+		set_motor_direction(&motorB, 0);
 	}
-	else if(direction > 0){	// counter-clockwise
-		printf("CC - motor speed \r\n");
-		set_drive_motor_signal(motor, 1, 0);
-		set_drive_motor_signal(motor, 2, duty);
+	// reverse
+	else if(direction < 0){
+		set_motor_direction(&motorA, 0);
+		set_motor_direction(&motorB, 1);
 	}
-	else{					// powered brake
-		set_drive_motor_signal(motor, 1, 0);
-		set_drive_motor_signal(motor, 2, 0);
+	// brake
+	else if(direction = 0){
+		set_motor_direction(&motorA, 0);
+		set_motor_direction(&motorB, 0);
 	}
 }
 
-void set_drive_motor_speed_rpm(struct MOTOR *motor, int speed_rpm)
-{
-	int duty_percent = (speed_rpm * 100) / MAX_RPM;
-	if(speed_rpm > 200) duty_percent = 100;
-	else if(speed_rpm < 0) duty_percent = 0;
-	set_drive_motor_speed(motor, duty_percent);
-
+void set_drive_duty(int duty){
+	set_motor_duty(&motorA, duty);
+	set_motor_duty(&motorB, duty);
 }
 
-void set_drive_move_direction(int move_dir)
-{
-	// move_dir = -1: reverse, 0: brake, 1: forward
-	if(move_dir < 0){
-		set_drive_motor_direction(&motorA, -1);
-		set_drive_motor_direction(&motorB,  1);
-	}
-	if(move_dir > 0){
-		set_drive_motor_direction(&motorA,  1);
-		set_drive_motor_direction(&motorB, -1);
-	}
-	else{
-		set_drive_motor_direction(&motorA, 0);
-		set_drive_motor_direction(&motorB, 0);
-	}
+void drive_update(){
+	set_drive_motor_signal(&motorA, 1, motorA.sig1active * motorA.duty);
+	set_drive_motor_signal(&motorA, 2, motorA.sig2active * motorA.duty);
+	set_drive_motor_signal(&motorA, 1, motorB.sig1active * motorA.duty);
+	set_drive_motor_signal(&motorA, 2, motorB.sig2active * motorA.duty);
 }
 
-void set_drive_turn_direction(int turn_dir)
-{	
-	// -1: left, 0: straight, 1: right
-	if(turn_dir < 0){
-		set_drive_motor_direction(&motorA, -1);
-		set_drive_motor_direction(&motorB, -1);
-	}
-	if(turn_dir > 0){
-		set_drive_motor_direction(&motorA,  1);
-		set_drive_motor_direction(&motorB, 	1);
-	}
-	else{
-		set_drive_motor_direction(&motorA, 0);
-		set_drive_motor_direction(&motorB, 0);
-	}
 
-}
 
-void set_drive_speed(int duty)
-{
-	int duty_percent = duty;
-	if(duty > 100) 	  { duty_percent = 100; }
-	else if(duty < 0) { duty_percent = 0; }
-	set_drive_motor_speed(&motorA, duty_percent);
-	set_drive_motor_speed(&motorB, duty_percent);
-}
 
-void set_drive_speed_rpm(int speed_rpm)
-{
-	int duty_percent = (speed_rpm * 100) / MAX_RPM;
-	set_drive_speed(duty_percent);
-}
+
+
+
 
 void drive_line(int distance_cm, float speed_mps){
 	int duty = speed_mps * MPStoDC;
-	set_drive_move_direction(1);
-	set_drive_speed(duty);
+	set_drive_direction(1);
+	set_drive_duty(duty);
 	cyhal_system_delay_ms((distance_cm*1000)/speed_mps);
-	set_drive_speed(0);
-	set_drive_move_direction(0);
+	set_drive_duty(0);
+	set_drive_direction(0);
 	printf("Line Complete\r\n");
 }
 
 void drive_arc(float turn_radius, float speed_mps, int direction){
 	int duty = speed_mps * MPStoDC;
-	set_drive_move_direction(FORWARD);
+	set_drive_direction(FORWARD);
 	int inner_rad = (turn_radius - (WHEEL_WIDTH/2));
 	int outer_rad = (turn_radius + (WHEEL_WIDTH/2));
 	int speed_left = 0;
 	int speed_right = 0;
-	set_drive_motor_speed(&motorA, speed_left);
-	set_drive_motor_speed(&motorB, speed_right);
+	set_motor_duty(&motorA, speed_left);
+	set_motor_duty(&motorB, speed_right);
 }
 
 void print_motor(struct MOTOR * motor){
 	printf("=================================\r\n");
 	printf("Motor Name: %c\r\n", motor->name);
-	printf("Motor Duty Cycle: %d\r\n", motor->duty);
-	printf("Motor Direction: %d\r\n", motor->direction);
+	printf("Duty: %d, Dir: %d, sig1active: %d, sig2active: %d\r\n", motor->duty, motor->direction, motor->sig1active, motor->sig2active);
 	printf("=================================\r\n");
 }
 
@@ -218,23 +182,10 @@ void print_motor(struct MOTOR * motor){
 *****************************************************/
 static void motor_io_init(void)
 { 
-    /* ADD CODE to configure motor pins as outputs */
-	// Enable MOTOR_DIR output
-	cyhal_gpio_init(
-			PIN_MOTOR_DIR,            // Pin
-			CYHAL_GPIO_DIR_OUTPUT,      // Direction
-			CYHAL_GPIO_DRIVE_STRONG,     // Drive Mode
-			true);
-	// Enable MOTOR_STEP output
-	// Enable MOTOR_PWM output
-	cyhal_pwm_init(
-			&step_pwm_obj, 
-			PIN_MOTOR_STEP, 
-			NULL);
 	// Enable MOTOR_PWM output
 	cyhal_pwm_init(
 			&servo_pwm_obj, 
-			PIN_MOTOR_PWM, 
+			PIN_SERVO_PWM, 
 			NULL);
 }
 
@@ -257,65 +208,13 @@ void motor_init(void)
 	motor_io_init();
 }
 
-/*****************************************************
-* Function Name: motor_dir_inc
-******************************************************
-* Summary:
-*
-* Parameters:
-*  void
-*
-* Return:
-*
-*
-*****************************************************/
-void motor_set_dir(bool direction){
-	if(DIR == direction){
-		//printf("MOTOR_MSG: Stepper direction is already %s\r\n", direction ? "right": "left");
-		cyhal_gpio_write(PIN_MOTOR_DIR, direction);
-	}
-	else{
-		//printf("MOTOR_MSG: Stepper direction set %s\r\n", direction ? "right": "left");
-		cyhal_gpio_write(PIN_MOTOR_DIR, direction);
-		DIR = direction;
-	}
-}
-
-/*****************************************************
-* Function Name: motor_step_speed
-******************************************************
-* Summary:
-*
-* Parameters:
-*  void
-*
-* Return:
-*
-*
-*****************************************************/
-void motor_step_speed(int speed){
-	
-	// stop signal briefly before changing it
-	rslt = cyhal_pwm_stop(&step_pwm_obj);
-
-	// Saturate speed if out-of-bounds
-	int set_speed = speed;
-	if(speed > 200) set_speed = 200;
-	if(speed < 0) set_speed = 0;
-
-	// Set a duty cycle of 50% and frequency of set_speed
-    rslt = cyhal_pwm_set_duty_cycle(&step_pwm_obj, 50, set_speed);
- 
-    // Start the PWM output
-    rslt = cyhal_pwm_start(&step_pwm_obj);
-}
 
 /*****************************************************
 * Function Name: motor_set_pwm
 ******************************************************
 * Summary:
 *
-* Parameters:
+* Parameters: angle
 *  void
 *
 * Return:

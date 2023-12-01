@@ -223,6 +223,12 @@ printf("****************** \r\n\n");
 			  		sig_str[1] = pcInputString[7];
 			  		int duty = atoi(&pcInputString[9]);
 					DriveBot(sig_str, duty);
+				} else if (strncmp(pcInputString, "motor_signal ", 13) == 0){
+			  		char sig_str[2];
+			  		sig_str[0] = pcInputString[13];
+			  		sig_str[1] = pcInputString[14];
+			  		int duty = atoi(&pcInputString[16]);
+					singleDrive(charToMotor(sig_str[1]), sig_str[2], duty);
 				} else {
 			  		printf("CMD fail: command not recognized.\r\n");
 			  	}
