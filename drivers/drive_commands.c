@@ -14,18 +14,26 @@ void * charToMotor(char c){
     return 0;
 }
 
-void singleDrive(struct MOTOR * motor, int signal, int duty){
+void singleDrive(char name, int signal){
 
-    int duration = 5;
-	printf("Running motor signal %d%s at %d%% for %d seconds.\r\n", signal, motor->name, duty, duration);
-    set_drive_motor_signal(motor, signal, duty);
-    print_motor(motor);
-	for(int i = duration; i > 0; i--){
-        cyhal_system_delay_ms(1000);
-	    printf(".\r\n");
-    }
-	printf("Ending motor signal %d%s.\r\n", signal, motor->name);
-	set_drive_motor_signal(motor, signal, 0);
+	int signal_index = signal -1;
+	struct MOTOR * motor = charToMotor(name);
+	cyhal_pwm_t * pwm_obj = motor->motor_pwm[signal_index];
+
+	printf("Motor%s signal %d test \r\n", name, signal);
+	
+	cyhal_pwm_stop(pwm_obj);
+	for(int i = 4; i < 11; i++){
+		printf("Duty: %d \r\n", i*10);
+		cyhal_pwm_stop(pwm_obj);
+		// set duty cycle to duty
+		cyhal_pwm_set_duty_cycle(pwm_obj, i*10, DRV_PWM_FREQ);
+		// Start the PWM output
+    	cyhal_pwm_start(pwm_obj);
+		cyhal_system_delay_ms(2000);
+	}
+	cyhal_pwm_stop(pwm_obj);
+	printf("End Motor %s signal %d test\r\n", name, signal);
 }
 
 bool isMotorString(char * str){

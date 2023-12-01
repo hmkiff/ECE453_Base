@@ -21,7 +21,7 @@
 
 void * charToMotor(char c);
 
-void singleDrive(struct MOTOR * motor, int signal, int duty);
+void singleDrive(char name, int signal);
 
 bool isMotorString(char * str);
 
