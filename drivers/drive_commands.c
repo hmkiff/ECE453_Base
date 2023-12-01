@@ -101,3 +101,32 @@ void DriveMotor(struct MOTOR * motor, char * sig_str, int duty){
 		print_motor(motor);
 	}
 }
+
+void DriveBot(char * sig_str, int duty){
+	printf("Current Motor Status\r\n");
+	print_motor(&motorA);
+	print_motor(&motorB);
+	
+	if(strncmp(sig_str, "fr", 2) == 0){
+		set_drive_speed(duty);
+		set_drive_move_direction(FORWARD);
+		print_motor(&motorA);
+		print_motor(&motorB);
+		cyhal_system_delay_ms(2000);
+		set_drive_speed(0);
+	}
+	else if(strncmp(sig_str, "bk", 2) == 0){
+		set_drive_speed(duty);
+		set_drive_move_direction(REVERSE);
+		print_motor(&motorA);
+		print_motor(&motorB);
+		cyhal_system_delay_ms(2000);
+		set_drive_speed(0);
+	}
+	else if(strncmp(sig_str, "br", 2) == 0){
+		set_drive_move_direction(0);
+		set_drive_speed(0);
+	}
+	print_motor(&motorA);
+	print_motor(&motorB);
+}

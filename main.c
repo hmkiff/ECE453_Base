@@ -195,42 +195,38 @@ printf("****************** \r\n\n");
 					#else
 						printf("CMD fail: I2C not enabled.\r\n");
 					#endif
-				} else if (strncmp(pcInputString, "servo ", 6) == 0) {
-				  int servo_angle = atoi(&pcInputString[6]);
-				  printf("CMD result: Setting servo angle to %d\r\n", servo_angle);
-				  motor_set_pwm(servo_angle);
-				  if(servo_angle < 0 || servo_angle > 180){
-					  printf("CMD warning: Servo angle was out-of-bounds and rectified to 0 or 180\r\n");
-				  }
-			  } else if (strncmp(pcInputString, "distance ", 9) == 0) {
-			  	//int servo_angle = atoi(&pcInputString[9]);
-			  	printf("CMD result: Read Distance measurements.\r\n");
-			  	// uint32_t echodist1;
-			  	// uint32_t echodist2;
-			  	printf("ECHO 1: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO1));
-			  	printf("ECHO 2: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO2));
-			  } else if (strncmp(pcInputString, "single_drive ", 13) == 0) {
-			  	char sig_str[2];
-			  	sig_str[0] = pcInputString[13];
-			  	sig_str[1] = pcInputString[14];
-			  	int duty = atoi(&pcInputString[16]);
-			  	
-			  	if(isMotorString(sig_str)) {
-			  		singleDrive(charToMotor(pcInputString[14]), atoi(&pcInputString[13]), duty);
-			  	}					
-			  	else{
-			  		printf("No motor signal specified. enter signal name after CMD. 1a, 2a, 1b, 2b");
+			  	} else if (strncmp(pcInputString, "servo ", 6) == 0) {
+				    int servo_angle = atoi(&pcInputString[6]);
+				  	printf("CMD result: Setting servo angle to %d\r\n", servo_angle);
+				  	motor_set_pwm(servo_angle);
+				  	if(servo_angle < 0 || servo_angle > 180){
+					 	printf("CMD warning: Servo angle was out-of-bounds and rectified to 0 or 180\r\n");
+				  	}
+			  	} else if (strncmp(pcInputString, "distance ", 9) == 0) {
+			  		//int servo_angle = atoi(&pcInputString[9]);
+			  		printf("CMD result: Read Distance measurements.\r\n");
+			  		// uint32_t echodist1;
+			  		// uint32_t echodist2;
+			  		printf("ECHO 1: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO1));
+			  		printf("ECHO 2: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO2));
+			  	} else if (strncmp(pcInputString, "motors ", 7) == 0){
+			  		char sig_str[2];
+			  		sig_str[0] = pcInputString[7];
+			  		sig_str[1] = pcInputString[8];
+			  		int duty = atoi(&pcInputString[10]);
+			  		DriveMotor(&motorA, sig_str, duty);
+					cyhal_system_delay_ms(1000);
+			  		DriveMotor(&motorB, sig_str, duty);
+			  	} else if (strncmp(pcInputString, "drive ", 6) == 0){
+			  		char sig_str[2];
+			  		sig_str[0] = pcInputString[6];
+			  		sig_str[1] = pcInputString[7];
+			  		int duty = atoi(&pcInputString[9]);
+					DriveBot(sig_str, duty);
+				} else {
+			  		printf("CMD fail: command not recognized.\r\n");
 			  	}
-			  } else if (strncmp(pcInputString, "motors ", 7) == 0){
-			  	char sig_str[2];
-			  	sig_str[0] = pcInputString[7];
-			  	sig_str[1] = pcInputString[8];
-			  	int duty = atoi(&pcInputString[10]);
-			  	DriveMotor(&motorA, sig_str, duty);
-			  	DriveMotor(&motorB, sig_str, duty);
-			  } else {
-			  	printf("CMD fail: command not recognized.\r\n");
-			  }
+			
 		} else if (SIMBOT_HOST == 1) {
 			
 		} else {
