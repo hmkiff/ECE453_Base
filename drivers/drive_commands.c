@@ -47,26 +47,29 @@ void DriveMotor(struct MOTOR * motor, char * sig_str, int duty){
 	if(strncmp(sig_str, "cc", 2) == 0){
 		set_motor_duty(motor, duty);
 		set_motor_direction(motor, 1);
+		drive_update();
 		print_motor(motor);
 		cyhal_system_delay_ms(5000);
 		set_motor_duty(motor, 0);
+		drive_update();
 		print_motor(motor);
 		
 	}
 	else if(strncmp(sig_str, "cw", 2) == 0){
 		set_motor_duty(motor, duty);
 		set_motor_direction(motor, -1);
+		drive_update();
 		print_motor(motor);
 		cyhal_system_delay_ms(5000);
 		set_motor_duty(motor, 0);
+		drive_update();
 		print_motor(motor);
 		
 	}
 	else if(strncmp(sig_str, "br", 2) == 0){
 		set_motor_duty(motor, 0);
 		set_motor_direction(motor, 0);
-		set_drive_motor_signal(motor, 1, 0);
-		set_drive_motor_signal(motor, 2, 0);
+		drive_update();
 		print_motor(motor);
 	}
 }
@@ -79,22 +82,27 @@ void DriveBot(char * sig_str, int duty){
 	if(strncmp(sig_str, "fr", 2) == 0){
 		set_drive_duty(duty);
 		set_drive_direction(FORWARD);
+		drive_update();
 		print_motor(&motorA);
 		print_motor(&motorB);
 		cyhal_system_delay_ms(2000);
 		set_drive_duty(0);
+		drive_update();
 	}
 	else if(strncmp(sig_str, "bk", 2) == 0){
 		set_drive_duty(duty);
 		set_drive_direction(REVERSE);
+		drive_update();
 		print_motor(&motorA);
 		print_motor(&motorB);
 		cyhal_system_delay_ms(2000);
 		set_drive_duty(0);
+		drive_update();
 	}
 	else if(strncmp(sig_str, "br", 2) == 0){
 		set_drive_direction(0);
 		set_drive_duty(0);
+		drive_update();
 	}
 	print_motor(&motorA);
 	print_motor(&motorB);

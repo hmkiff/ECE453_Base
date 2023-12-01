@@ -133,9 +133,11 @@ void drive_line(int distance_cm, float speed_mps){
 	int duty = speed_mps * MPStoDC;
 	set_drive_direction(1);
 	set_drive_duty(duty);
+	drive_update();
 	cyhal_system_delay_ms((distance_cm*1000)/speed_mps);
 	set_drive_duty(0);
 	set_drive_direction(0);
+	drive_update();
 	printf("Line Complete\r\n");
 }
 
@@ -148,6 +150,7 @@ void drive_arc(float turn_radius, float speed_mps, int direction){
 	int speed_right = 0;
 	set_motor_duty(&motorA, speed_left);
 	set_motor_duty(&motorB, speed_right);
+	drive_update();
 }
 
 void print_motor(struct MOTOR * motor){
