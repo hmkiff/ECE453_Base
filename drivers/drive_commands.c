@@ -17,14 +17,14 @@ void * charToMotor(char c){
 void singleDrive(struct MOTOR * motor, int signal, int duty){
 
     int duration = 5;
-	printf("Running motor signal %d%c at %d%% for %d seconds.\r\n", signal, motor->name, duty, duration);
+	printf("Running motor signal %d%s at %d%% for %d seconds.\r\n", signal, motor->name, duty, duration);
     set_drive_motor_signal(motor, signal, duty);
     print_motor(motor);
 	for(int i = duration; i > 0; i--){
         cyhal_system_delay_ms(1000);
 	    printf(".\r\n");
     }
-	printf("Ending motor signal %d%c.\r\n", signal, motor->name);
+	printf("Ending motor signal %d%s.\r\n", signal, motor->name);
 	set_drive_motor_signal(motor, signal, 0);
 }
 

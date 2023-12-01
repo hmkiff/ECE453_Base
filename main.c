@@ -226,9 +226,72 @@ printf("****************** \r\n\n");
 				} else if (strncmp(pcInputString, "motor_signal ", 13) == 0){
 			  		char sig_str[2];
 			  		sig_str[0] = pcInputString[13];
-			  		sig_str[1] = pcInputString[14];
+			  		int signal = atoi(pcInputString[14]);
 			  		int duty = atoi(&pcInputString[16]);
-					singleDrive(charToMotor(sig_str[1]), sig_str[2], duty);
+					printf("\r\n");
+					printf(pcInputString);
+					printf("\r\n");
+					singleDrive(charToMotor(sig_str[0]), signal, duty);
+				} else if (strncmp(pcInputString, "motorB1", 7) == 0){
+					printf("MotorB signal 1 test \r\n");
+					cyhal_pwm_stop(motorB.motor_pwm[0]);
+					for(int i = 1; i < 11; i++){
+						printf("Duty: %d \r\n", i*10);
+						cyhal_pwm_stop(motorB.motor_pwm[0]);
+						// set duty cycle to duty
+						cyhal_pwm_set_duty_cycle(motorB.motor_pwm[0], i*10, DRV_PWM_FREQ);
+						// Start the PWM output
+    					cyhal_pwm_start(motorB.motor_pwm[0]);
+						cyhal_system_delay_ms(2000);
+					}
+					cyhal_pwm_stop(motorB.motor_pwm[0]);
+					printf("End MotorB signal 1 test\r\n");
+				} else if (strncmp(pcInputString, "motorB2", 7) == 0){
+					printf("MotorB signal 2 test \r\n");
+					// cyhal_pwm_stop(&drive2B_pwm_obj);
+					cyhal_pwm_stop(motorB.motor_pwm[1]);
+					for(int i = 1; i < 11; i++){
+						printf("Duty: %d \r\n", i*10);
+						// cyhal_pwm_stop(&drive2B_pwm_obj);
+						cyhal_pwm_stop(motorB.motor_pwm[1]);
+						// set duty cycle to duty
+						// cyhal_pwm_set_duty_cycle(&drive2B_pwm_obj, i*10, DRV_PWM_FREQ);
+						cyhal_pwm_set_duty_cycle(motorB.motor_pwm[1], i*10, DRV_PWM_FREQ);
+						// Start the PWM output
+						// cyhal_pwm_start(&drive2B_pwm_obj);
+    					cyhal_pwm_start(motorB.motor_pwm[1]);
+						cyhal_system_delay_ms(2000);
+					}
+					cyhal_pwm_stop(motorB.motor_pwm[1]);
+					printf("End MotorB signal 2 test\r\n");
+				} else if (strncmp(pcInputString, "motorA1", 7) == 0){
+					printf("MotorA signal 1 test \r\n");					
+					cyhal_pwm_stop(motorA.motor_pwm[0]);
+					for(int i = 1; i < 11; i++){
+						printf("Duty: %d \r\n", i*10);
+						cyhal_pwm_stop(motorA.motor_pwm[0]);
+						// set duty cycle to duty
+						cyhal_pwm_set_duty_cycle(motorA.motor_pwm[0], i*10, DRV_PWM_FREQ);
+						// Start the PWM output
+    					cyhal_pwm_start(motorA.motor_pwm[0]);
+						cyhal_system_delay_ms(2000);
+					}
+					cyhal_pwm_stop(motorA.motor_pwm[0]);
+					printf("End MotorA signal 1 test\r\n");
+				} else if (strncmp(pcInputString, "motorA2", 7) == 0){
+					printf("MotorA signal 2 test \r\n");
+					cyhal_pwm_stop(motorA.motor_pwm[1]);
+					for(int i = 1; i < 11; i++){
+						printf("Duty: %d \r\n", i*10);
+						cyhal_pwm_stop(motorA.motor_pwm[1]);
+						// set duty cycle to duty
+						cyhal_pwm_set_duty_cycle(motorA.motor_pwm[1], i*10, DRV_PWM_FREQ);
+						// Start the PWM output
+    					cyhal_pwm_start(motorA.motor_pwm[1]);
+						cyhal_system_delay_ms(2000);
+					}
+					cyhal_pwm_stop(motorA.motor_pwm[1]);
+					printf("End MotorA signal 2 test\r\n");
 				} else {
 			  		printf("CMD fail: command not recognized.\r\n");
 			  	}
@@ -253,7 +316,7 @@ printf("****************** \r\n\n");
 
 			// Move to position
 		}
-    }
+	}
 }
 
 /* [] END OF FILE */

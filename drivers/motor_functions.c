@@ -62,9 +62,9 @@ void set_drive_motor_signal(struct MOTOR *motor, int signal, int duty)
 
 void kill_motor_signal(){
 	cyhal_pwm_stop(motorA.motor_pwm[0]);
-	cyhal_pwm_stop(motorA.motor_pwm[0]);
+	cyhal_pwm_stop(motorA.motor_pwm[1]);
 	cyhal_pwm_stop(motorB.motor_pwm[0]);
-	cyhal_pwm_stop(motorB.motor_pwm[0]);
+	cyhal_pwm_stop(motorB.motor_pwm[1]);
 }
 
 void set_motor_direction(struct MOTOR *motor, int direction){
@@ -96,11 +96,11 @@ void set_drive_direction(int direction){
 	// forward
 	if(direction > 0){
 		set_motor_direction(&motorA, 1);
-		set_motor_direction(&motorB, 0);
+		set_motor_direction(&motorB, -1);
 	}
 	// reverse
 	else if(direction < 0){
-		set_motor_direction(&motorA, 0);
+		set_motor_direction(&motorA, -1);
 		set_motor_direction(&motorB, 1);
 	}
 	// brake
