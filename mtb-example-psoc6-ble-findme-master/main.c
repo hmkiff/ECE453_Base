@@ -72,7 +72,7 @@
 #define ENABLE_IMU 0
 #define ENABLE_EEPROM 0
 // I2C device enables
-#define ENABLE_I2C 0
+#define ENABLE_I2C 1
 // PWM device enables
 #define ENABLE_MOTOR 1
 #define ENABLE_ULTRASONIC 1
@@ -174,6 +174,9 @@ int main(void) {
 					char ch_num_str = cmdStr[8];
 					int ch_num = atoi(&ch_num_str);
 					ir_read(ch_num, 5, true);
+					int us_angle = 180-(ch_num*90);	// rotates channel assignment for easy angle math
+					printf("Rotating to %d degrees \r\n", us_angle);
+					set_servo_angle(us_angle);
 				} else if (strncmp(cmdStr, "IR reboot", 9) == 0) {
 					ir_boot();
 				}  else if (strncmp(cmdStr, "servo ", 6) == 0) {

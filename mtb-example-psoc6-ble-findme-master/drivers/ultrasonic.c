@@ -227,7 +227,7 @@ void set_servo_angle(int angle){
 	}
 	// Calcullate pulse-width from angle
 	int pulse_width = ((angle*2000)/180) + 500;
-    printf("angle: %d, pulse_width: %d, \r\n (angle*2000)/180: %d, (angle/180)*2000: %d, \r\n", angle, pulse_width, ((angle*2000)/180), ((angle/180)*2000));
+    //printf("angle: %d, pulse_width: %d, \r\n (angle*2000)/180: %d, (angle/180)*2000: %d, \r\n", angle, pulse_width, ((angle*2000)/180), ((angle/180)*2000));
 	// Saturate width if out-of-bounds
 	int set_width = pulse_width;
 	if(pulse_width > 2500) set_width = 2500;
