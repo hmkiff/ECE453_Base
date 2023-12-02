@@ -55,14 +55,6 @@ extern struct MOTOR{
     bool sig2active;
 } motorA, motorB;
 
-
-// Exported Global Variables
-extern cyhal_pwm_t servo_pwm_obj;
-extern cyhal_pwm_t drive1A_pwm_obj;
-extern cyhal_pwm_t drive2A_pwm_obj;
-extern cyhal_pwm_t drive1B_pwm_obj;
-extern cyhal_pwm_t drive2B_pwm_obj;
-
 /* Public Function API */
 void motor_init(void);  // Needs specification for non-staff-demo projects
 

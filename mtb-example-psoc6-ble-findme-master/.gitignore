@@ -9,6 +9,8 @@
 
 # ModusToolbox library repos or information about library dependencies
 libs/
+../libs/
+../mtb_shared/
 
 # Eclipse IDE for ModusToolbox files
 .metadata/

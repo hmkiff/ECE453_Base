@@ -7,6 +7,8 @@
 
 #include "ultrasonic.h"
 
+int ultrasonic_angle = 0;
+
 // 
 void ultrasonic_init(void){
 	
@@ -93,22 +95,78 @@ float ultrasonic_get_object_distance(cyhal_gpio_t echopin){
 }
 
 
-// Ultrasonic Object Position Steps
-// Obtain both distances
+struct * POSITION ultrasonic_locate_object(){
 
-// Compare which is longer
+    printf("Locating Object \r\n");
 
-// Solve for alpha (the angle between short distance and sensor board)
-// alpha = arccos( (Lshort^2 + delta^2 - Llong^2) / (2*Lshort*delta) )
+    // Ultrasonic Object Position Steps
+    // Obtain both distances
+    float leftDist = utrasonic_get_object_distance(PIN_ECHO1);
+    float rightDist = ultrasonic_get_object_distance(PIN_ECHO2);
+    printf("left: %f, right %f \r\n", leftDist, rightDist);
 
-// Solve for R, the radius from center of board (center of robot) to object
-// R = sqrt( Lshort^2 + (delta/2)^2 - 2*(delta/2)*Lshort*cos(alpha) )
+    float Llong  = 0;
+    float Lshort = 0;
+    bool bigPhi  = FALSE;
 
-//Solve for phi
-// phi = arcsin( (delta*sin(alpha)) / 2*R )
+    // Compare which is longer
+    if(leftDist == rightDist) { equalDist = TRUE;}
+    else{
+        if(rightDist > leftDist){
+            Llong = rightDist;
+            Lshort = leftDist;
+            bigPhi = TRUE;
+        }
+        else{
+            Llong = leftDist;
+            Lshort = rightDist;
+            bigPhi = FALSE;
+        }
+    }
+    printf("short: %f, long %f \r\n", Lshort, Llong);
+    
+    float shortSquare = Lshort * Lshort;
+    float longSquare = Llong * Llong;
+    float deltaSquare = delta * delta;
+    printf("shortSquare: %f, longSquare %f , deltaSquare: %f \r\n", shortSquare, longSquare, deltaSquare);
 
-// Localize with position vector (R, phi)
+    // Solve for alpha (the angle between short distance and sensor board)
+    // alpha = arccos( (Lshort^2 + delta^2 - Llong^2) / (2*Lshort*delta) )
+    double alpha = acos((shortSquare + deltaSquare - longSquare) / (2*Lshort*delta));
+    printf("alpha: %lf \r\n", alpha);
 
-// Change reference frame from sensor board frame to robot frame
+    // Solve for R, the radius from center of board (center of robot) to object
+    // R = sqrt( Lshort^2 + (delta/2)^2 - 2*(delta/2)*Lshort*cos(alpha) )
+    float Rdiff = 2*(delta/2)*Lshort*cos(alpha);
+    float R = sqrt(shortSquare + (deltaSquare/4) - Rdiff);
+    printf("sqrt(%f + %f - %f) = %f \r\n", shortSquare, (deltaSquare/4), Rdiff, R);
+    
+    //Solve for phi
+    // phi = arcsin( (delta*sin(alpha)) / 2*R )
+    double phi = asin( (delta*sin(alpha))/ 2*R );
+    printf("phi: %lf \r\n", phi);
+    double true_phi = (bigPhi ? (M_PI-phi) : phi);
 
-// Convert to X Y coordinates 
+    // Localize with position vector (R, phi)
+    // Convert to X Y coordinates 
+    float us_X = (R * cos(phi)) - X_CORRECT;
+    float us_Y = (R * sin(phi)) - Y_CORRECT;
+    printf("us_x: %f, us_y: %f \r\n", us_X, us_Y);
+    
+    // Change reference frame from sensor board frame to robot frame
+    double us_angle_rad = (float) ultrasonic_angle * DTR;
+    float true_X = us_X * cos(-us_angle_rad) - us_Y * sin(-us_angle_rad);
+    float true_Y = us_X * sin(-us_angle_rad) + us_Y * cos(-us_angle_rad);
+
+    struct POSITION outPos = {.x = true_X, .y = true_Y};
+    printPosition(&outPos);
+    
+    return &outPos;
+
+
+    
+}
+
+void printPosition(struct POSITION * pos){
+    printf("x: %f, y: %f \r\n", pos.x, pos.y);
+}

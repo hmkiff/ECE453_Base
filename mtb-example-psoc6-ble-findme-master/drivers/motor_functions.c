@@ -7,9 +7,8 @@
 
 #include "motor_functions.h"
 
-bool DIR = 0;	// Direction of STEP, 0: Left, 1: Right
+
 cy_rslt_t   rslt;
-cyhal_pwm_t step_pwm_obj;
 cyhal_pwm_t servo_pwm_obj;
 
 // drive motor pwms
