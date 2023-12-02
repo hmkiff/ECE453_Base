@@ -74,8 +74,8 @@
 // I2C device enables
 #define ENABLE_I2C 1
 // PWM device enables
-#define ENABLE_MOTOR 0
-#define ENABLE_ULTRASONIC 0
+#define ENABLE_MOTOR 1
+#define ENABLE_ULTRASONIC 1
 
 // Bot state information
 botstate state[NUM_BOTS];
@@ -168,57 +168,39 @@ int main(void) {
 					char ch_num_str = cmdStr[8];
 					int ch_num = atoi(&ch_num_str);
 					ir_read(ch_num, 5, true);
-				} else if (strncmp(cmdStr, "step dir ", 9) == 0) {
-					char step_dir = cmdStr[9];
-					bool motor_dir = 0;
-					bool valid_flag = 1;
-					if(step_dir == 'r') {motor_dir = 1 ;}
-					else if(step_dir == 'l') {motor_dir = 0;}
-					else {valid_flag = 0;}
-					if (valid_flag) {
-						printf("CMD result: Setting stepper direction to %s\r\n", motor_dir ? "right" : "left");
-						motor_set_dir(motor_dir);
-					} else {
-						printf("CMD fail: Invalid direction command. Check case!\r\n");
-					}
-				} else if (strncmp(cmdStr, "step speed ", 11) == 0) {
-					int step_speed = atoi(&cmdStr[11]);
-					printf("CMD result: Setting stepper speed to %d\r\n", step_speed);
-					motor_step_speed(step_speed);
-					if(step_speed < 0 || step_speed > 200){
-						printf("CMD warning: Stepper speed was out-of-bounds and rectified to 0 or 200\r\n");
-					}
-				} else if (strncmp(cmdStr, "servo ", 6) == 0) {
+				}  else if (strncmp(cmdStr, "servo ", 6) == 0) {
 					int servo_angle = atoi(&cmdStr[6]);
 					printf("CMD result: Setting servo angle to %d\r\n", servo_angle);
 					motor_set_pwm(servo_angle);
 					if(servo_angle < 0 || servo_angle > 180){
 						printf("CMD warning: Servo angle was out-of-bounds and rectified to 0 or 180\r\n");
 					}
-				} else if (strncmp(cmdStr, "distance ", 9) == 0) {
-					//int servo_angle = atoi(&cmdStr[9]);
-					printf("CMD result: Read Distance measurements.\r\n");
-					// uint32_t echodist1;
-					// uint32_t echodist2;
-					printf("ECHO 1: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO1));
-					printf("ECHO 2: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO2));
-				} else if (strncmp(cmdStr, "single_drive ", 13) == 0) {
+				} else if (strncmp(pcInputString, "distance ", 9) == 0) {
+			  		//int servo_angle = atoi(&pcInputString[9]);
+			  		printf("CMD result: Read Distance measurements.\r\n");
+			  		// uint32_t echodist1;
+			  		// uint32_t echodist2;
+			  		printf("ECHO 1: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO1));
+			  		printf("ECHO 2: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO2));
+			  	} else if (strncmp(pcInputString, "motors ", 7) == 0){
+			  		char sig_str[2];
+			  		sig_str[0] = pcInputString[7];
+			  		sig_str[1] = pcInputString[8];
+			  		int duty = atoi(&pcInputString[10]);
+			  		DriveMotor(&motorA, sig_str, duty);
+					cyhal_system_delay_ms(1000);
+			  		DriveMotor(&motorB, sig_str, duty);
+			  	} else if (strncmp(pcInputString, "drive ", 6) == 0){
+			  		char sig_str[2];
+			  		sig_str[0] = pcInputString[6];
+			  		sig_str[1] = pcInputString[7];
+			  		int duty = atoi(&pcInputString[9]);
+					DriveBot(sig_str, duty);
+				} else if (strncmp(pcInputString, "test_motor ", 11) == 0){
 					char sig_str[2];
-					sig_str[0] = cmdStr[13];
-					sig_str[1] = cmdStr[14];
-					int duty = atoi(&cmdStr[16]);
-					if(isMotorString(sig_str)) {
-						singleDrive(charToMotor(cmdStr[14]), atoi(&cmdStr[13]), duty);
-					} else {
-						printf("No motor signal specified. enter signal name after CMD. 1a, 2a, 1b, 2b");
-					}
-				} else if (strncmp(cmdStr, "motors ", 7) == 0){
-					char sig_str[2];
-					sig_str[0] = cmdStr[7];
-					sig_str[1] = cmdStr[8];
-					int duty = atoi(&cmdStr[10]);
-					DriveMotor(&motorA, sig_str, duty);
-					DriveMotor(&motorB, sig_str, duty);
+			  		sig_str[0] = pcInputString[11];
+			  		int signal = atoi(pcInputString[12]);
+					singleDrive(sig_str[0], signal); 
 				} else if (strncmp(cmdStr, "IMU ", 4) == 0) {
 					if (ENABLE_SPI) {
 						if (ENABLE_IMU) {

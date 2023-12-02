@@ -21,10 +21,15 @@
 
 void * charToMotor(char c);
 
-void singleDrive(struct MOTOR * motor, int signal, int duty);
+void singleDrive(char name, int signal);
 
 bool isMotorString(char * str);
 
 void DriveMotor(struct MOTOR * motor, char * sig_str, int duty);
+
+void DriveBot(char * sig_str, int duty);
+
+
+//void DriveMotorA(char * sig_str, int duty);
 
 #endif
