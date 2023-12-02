@@ -164,10 +164,14 @@ int main(void) {
 					char ch_num_str = cmdStr[8];
 					int ch_num = atoi(&ch_num_str);
 					ir_io_test(ch_num);
+				} else if (strncmp(cmdStr, "IR read all", 11) == 0) {
+					ir_read_all(5, true);
 				} else if (strncmp(cmdStr, "IR read", 7) == 0) {
 					char ch_num_str = cmdStr[8];
 					int ch_num = atoi(&ch_num_str);
 					ir_read(ch_num, 5, true);
+				} else if (strncmp(cmdStr, "IR reboot", 9) == 0) {
+					ir_boot();
 				}  else if (strncmp(cmdStr, "servo ", 6) == 0) {
 					int servo_angle = atoi(&cmdStr[6]);
 					printf("CMD result: Setting servo angle to %d\r\n", servo_angle);
