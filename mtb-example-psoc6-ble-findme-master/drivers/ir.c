@@ -17,18 +17,21 @@ void ir_boot() {
             if (err != VL53LX_ERROR_NONE) {
                 printf("IR Error: Unable to detect IR %i boot, reason:\r\n", i);
                 print_IR_error(err);
+                continue;
             } else {
                 printf("* -- Initializing IR %i data\n\r", i);
                 VL53LX_Error err = VL53LX_DataInit(&boot_dev);
                 if (err != VL53LX_ERROR_NONE) {
                     printf("CMD fail: Unable to initialize IR %i data, reason:\r\n", i);
                     print_IR_error(err);
+                    continue;
                 } else {
                     printf("* -- Starting IR %i measurement\n\r", i);
                     err = VL53LX_StartMeasurement(&boot_dev);
                     if (err != VL53LX_ERROR_NONE) {
                         printf("CMD fail: Unable to start IR %i, reason:\r\n", i);
                         print_IR_error(err);
+                        continue;
                     }
                 }
             }
@@ -77,6 +80,12 @@ void ir_io_test(int dev_num) {
     IR_dev[dev_num] = test_dev;
 }
 
+void ir_read_all(int num_measurements, bool verbose) {
+    for (int i = 0; i < NUM_IR; i++) {
+        ir_read(i, num_measurements, verbose);
+    }
+}
+
 void ir_read(int dev_num, int num_measurements, bool verbose) {
     VL53LX_Dev_t measure_dev = IR_dev[dev_num];
     cy_rslt_t result = ir_mux_set_chnl(dev_num);
@@ -86,7 +95,7 @@ void ir_read(int dev_num, int num_measurements, bool verbose) {
         return;
     }
     if (verbose) {
-        printf("IR Info: Starting IR measurement 1 of %i...\r\n", num_measurements);
+        printf("IR Info: Starting IR %i measurement 1 of %i...\r\n", dev_num, num_measurements);
     }
     VL53LX_Error err = VL53LX_ClearInterruptAndStartMeasurement(&measure_dev);
     if (err != VL53LX_ERROR_NONE) {
@@ -118,7 +127,7 @@ void ir_read(int dev_num, int num_measurements, bool verbose) {
             }
             if (i < (num_measurements + 1)) {
                 if (verbose) {
-                    printf("IR Info: Starting measurement %i of %i...\r\n", i, num_measurements);
+                    printf("IR Info: Starting IR %i measurement %i of %i...\r\n", dev_num, i, num_measurements);
                 }
                 VL53LX_Error err = VL53LX_ClearInterruptAndStartMeasurement(&measure_dev);
                 if (err != VL53LX_ERROR_NONE) {
