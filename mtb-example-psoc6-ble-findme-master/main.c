@@ -166,6 +166,11 @@ int main(void) {
 					ir_io_test(ch_num);
 				} else if (strncmp(cmdStr, "IR read all", 11) == 0) {
 					ir_read_all(5, true);
+				} else if (strncmp(cmdStr, "IR read valid", 13) == 0) {
+					int max = 1000;
+					char ch_num_str = cmdStr[14];
+					int ch_num = atoi(&ch_num_str);
+					ir_read_until_valid(ch_num, max, true);
 				} else if (strncmp(cmdStr, "IR read", 7) == 0) {
 					char ch_num_str = cmdStr[8];
 					int ch_num = atoi(&ch_num_str);
