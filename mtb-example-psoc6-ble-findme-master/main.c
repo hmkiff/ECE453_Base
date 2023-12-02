@@ -72,7 +72,7 @@
 #define ENABLE_IMU 0
 #define ENABLE_EEPROM 0
 // I2C device enables
-#define ENABLE_I2C 1
+#define ENABLE_I2C 0
 // PWM device enables
 #define ENABLE_MOTOR 1
 #define ENABLE_ULTRASONIC 1
@@ -103,7 +103,7 @@ int main(void) {
 	if (ENABLE_I2C) {
 		printf("* -- Initializing I2C Bus\n\r");
 		i2c_init();
-		ir_boot();
+		//ir_boot();
 	}
 
 	if (ENABLE_SPI) {
@@ -175,31 +175,31 @@ int main(void) {
 					if(servo_angle < 0 || servo_angle > 180){
 						printf("CMD warning: Servo angle was out-of-bounds and rectified to 0 or 180\r\n");
 					}
-				} else if (strncmp(pcInputString, "distance ", 9) == 0) {
+				} else if (strncmp(cmdStr, "distance ", 9) == 0) {
 			  		//int servo_angle = atoi(&pcInputString[9]);
 			  		printf("CMD result: Read Distance measurements.\r\n");
 			  		// uint32_t echodist1;
 			  		// uint32_t echodist2;
 			  		printf("ECHO 1: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO1));
 			  		printf("ECHO 2: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO2));
-			  	} else if (strncmp(pcInputString, "motors ", 7) == 0){
+			  	} else if (strncmp(cmdStr, "motors ", 7) == 0){
 			  		char sig_str[2];
-			  		sig_str[0] = pcInputString[7];
-			  		sig_str[1] = pcInputString[8];
-			  		int duty = atoi(&pcInputString[10]);
+			  		sig_str[0] = cmdStr[7];
+			  		sig_str[1] = cmdStr[8];
+			  		int duty = atoi(&cmdStr[10]);
 			  		DriveMotor(&motorA, sig_str, duty);
 					cyhal_system_delay_ms(1000);
 			  		DriveMotor(&motorB, sig_str, duty);
-			  	} else if (strncmp(pcInputString, "drive ", 6) == 0){
+			  	} else if (strncmp(cmdStr, "drive ", 6) == 0){
 			  		char sig_str[2];
-			  		sig_str[0] = pcInputString[6];
-			  		sig_str[1] = pcInputString[7];
-			  		int duty = atoi(&pcInputString[9]);
+			  		sig_str[0] = cmdStr[6];
+			  		sig_str[1] = cmdStr[7];
+			  		int duty = atoi(&cmdStr[9]);
 					DriveBot(sig_str, duty);
-				} else if (strncmp(pcInputString, "test_motor ", 11) == 0){
+				} else if (strncmp(cmdStr, "test_motor ", 11) == 0){
 					char sig_str[2];
-			  		sig_str[0] = pcInputString[11];
-			  		int signal = atoi(pcInputString[12]);
+			  		sig_str[0] = cmdStr[11];
+			  		int signal = atoi(cmdStr[12]);
 					singleDrive(sig_str[0], signal); 
 				} else if (strncmp(cmdStr, "IMU ", 4) == 0) {
 					if (ENABLE_SPI) {
