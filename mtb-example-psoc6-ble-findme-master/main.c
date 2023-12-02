@@ -139,7 +139,6 @@ int main(void) {
 	#if ENABLE_ULTRASONIC
 		printf("* -- Initializing Ultrasonic Functions\n\r");
 		ultrasonic_init();
-		motor_init();
 	#endif
 
     printf("* -- Initializing BT Functions\n\r");
@@ -171,8 +170,12 @@ int main(void) {
 				}  else if (strncmp(cmdStr, "servo ", 6) == 0) {
 					int servo_angle = atoi(&cmdStr[6]);
 					printf("CMD result: Setting servo angle to %d\r\n", servo_angle);
-					motor_set_pwm(servo_angle);
-					if(servo_angle < 0 || servo_angle > 180){
+					set_servo_angle(servo_angle);
+				}  else if (strncmp(cmdStr, "servo_us ", 9) == 0) {
+					int width = atoi(&cmdStr[9]);
+					printf("CMD result: Setting servo width to %d\r\n", width);
+					set_servo_us(width);
+					if(width < 500 || width > 2500){
 						printf("CMD warning: Servo angle was out-of-bounds and rectified to 0 or 180\r\n");
 					}
 				} else if (strncmp(cmdStr, "distance ", 9) == 0) {
@@ -182,6 +185,9 @@ int main(void) {
 			  		// uint32_t echodist2;
 			  		printf("ECHO 1: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO1));
 			  		printf("ECHO 2: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO2));
+			  	} else if (strncmp(cmdStr, "locate", 6) == 0) {
+			  		printf("CMD result: Locating Object (if present).\r\n");
+			  		ultrasonic_locate_object();
 			  	} else if (strncmp(cmdStr, "motors ", 7) == 0){
 			  		char sig_str[2];
 			  		sig_str[0] = cmdStr[7];
@@ -197,10 +203,9 @@ int main(void) {
 			  		int duty = atoi(&cmdStr[9]);
 					DriveBot(sig_str, duty);
 				} else if (strncmp(cmdStr, "test_motor ", 11) == 0){
-					char sig_str[2];
-			  		sig_str[0] = cmdStr[11];
-			  		int signal = atoi(cmdStr[12]);
-					singleDrive(sig_str[0], signal); 
+			  		char name = cmdStr[11];
+			  		int signal = atoi(&cmdStr[12]);
+					singleDrive(name, signal); 
 				} else if (strncmp(cmdStr, "IMU ", 4) == 0) {
 					if (ENABLE_SPI) {
 						if (ENABLE_IMU) {

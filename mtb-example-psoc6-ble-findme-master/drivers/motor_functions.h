@@ -20,7 +20,6 @@
 #define PIN_MOTOR_2A    P10_4 // 
 #define PIN_MOTOR_1B    P10_0 // 
 #define PIN_MOTOR_2B    P9_4  // 
-#define PIN_SERVO_PWM   P9_2  // P5_2 //
 
 // Drive Motor PWM Frequency
 #define DRV_PWM_FREQ    20
@@ -55,9 +54,6 @@ extern struct MOTOR{
     bool sig2active;
 } motorA, motorB;
 
-/* Public Function API */
-void motor_init(void);  // Needs specification for non-staff-demo projects
-
 // Init drive motor pins for pwm signals.
 void drive_motor_init(void);
 
@@ -91,18 +87,5 @@ void drive_arc(float turn_radius, float speed_mps, int direction);
 
 // prints contents of MOTOR struct.
 void print_motor(struct MOTOR * motor);
-
-
-
-
-
-
-// generic motor/servo functions
-void motor_set_pwm(int angle);
-void motor_step_speed(int speed);
-void motor_set_dir(bool direction);
-
-
-//void motor_free(void);
 
 #endif
