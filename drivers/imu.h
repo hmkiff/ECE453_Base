@@ -41,5 +41,6 @@
 
 void imu_orientation(void);
 cy_rslt_t imu_cs_init(void);
+void get_orientation(void);
 
 #endif

@@ -65,41 +65,60 @@ float lin_val[3];
   // linear[0] = linear[0] * full scale range
     for (int i = 0; i < 3; ++i) {
          ang_val[i] = angles[i] * angular_rate_scale;
+
         
      }
 
 
     for (int i = 0; i < 3; ++i) {
         lin_val[i] = linear[i] * acceleration_scale;
-        if (lin_val[i] >= 0){
-            char dir = "R";
-        }
 
     }
 
-    if (lin_val[0] > 0) {
+
+    for (int j = 0; j < 2; ++j){
+        if (lin_val[0] > 0) {
         direction[0] = 'R'; // 'R' for positive values
     } 
-    else {
-        direction[0] = 'L'; // 'L' for negative values
+        else {
+            direction[0] = 'L'; // 'L' for negative values
+         }
+
+         if (lin_val[1] > 0) {
+        direction[1] = 'R'; // 'R' for positive values
+    } 
+        else {
+            direction[1] = 'L'; // 'L' for negative values
+         }
     }
+    
 
 
 // Print the directions
-    printf("X-axis Direction: %c\n", direction[0]);
+    // printf("X-axis Direction: %c\n\r", direction[0]);
+    //  printf("X-axis Direction: %c\n\r", direction[1]);
 
   sprintf(tx_buffer, "Linear acceleration:\r\n"
-                      "\tx: %.2f g\r\n"
-                      "\ty: %.2f g\r\n"
-                      "\tz: %.2f g\r\n"
-                      "Angular acceleration:\r\n"
-                      "\tx: %.2f dps\r\n"
-                      "\ty: %.2f dps\r\n"
-                      "\tz: %.2f dps\r\n",
-                      lin_val[0], lin_val[1], lin_val[2],
-                      ang_val[0], ang_val[1], ang_val[2]);
+                      "\tx: %c \r\n"
+                      "\ty: %c \r\n",
+                      
+                      
+                      direction[0], direction[1]
+                      );
   printf("%s", tx_buffer);
 }
+
+
+// sprintf(tx_buffer, "Linear acceleration:\r\n"
+//                       "\tx: %s g\r\n"
+//                       "\ty: %s g\r\n"
+//                       "\tz: %s g\r\n"
+//                       "Angular acceleration:\r\n"
+//                       "\tx: %.2f dps\r\n"
+//                       "\ty: %.2f dps\r\n"
+//                       "\tz: %.2f dps\r\n",
+//                       direction[0], direction[1], lin_val[2],
+//                       ang_val[0], ang_val[1], ang_val[2]);
 
 /*
  * @brief  Write generic device register (platform dependent)
@@ -264,4 +283,8 @@ cy_rslt_t imu_cs_init(void)
 {
   platform_init();
 	return CY_RSLT_SUCCESS;
+}
+
+void get_orientation(void){
+    imu_orientation();
 }

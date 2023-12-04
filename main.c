@@ -79,16 +79,32 @@ int main(void)
     printf("* -- Initializing SPI Bus\n\r");
     if (spi_init() == CY_RSLT_SUCCESS)
     {
-		if(eeprom_cs_init() == CY_RSLT_SUCCESS)
-		{
-			if(eeprom_test() != CY_RSLT_SUCCESS)
-			{
-				// Something is wrong wit the EEPROM
-				while(1){};
+		if(imu_cs_init() == CY_RSLT_SUCCESS){
+			for(;;){
+
+				get_orientation();
+				Cy_SysLib_Delay(30);
 			}
+			
+		}
+		
+		
+		
+		
+		
+
+		// 
+		// {
+		// 	if(imu_test() != CY_RSLT_SUCCESS)
+		// 	{
+		// 		//printf("*hfekfjjrcdfgkjejkgrk* \r\n\n");
+
+				//while(1){};
+		// 	}
+		// }
 
 		}
-    }
+    
 #endif
     printf("****************** \r\n\n");
 
@@ -118,23 +134,34 @@ int main(void)
 		//declare variables
 
     	Cy_SysLib_Delay(1000);
-		uint16_t addr;
+
+		
+		//uint16_t addr;
 		//cy_rslt_t   rslt;
-		uint8_t data;
+		//uint8_t data;
 		
 		
 
-		//initialize variables
-		addr = 0xFFFF;
-		data = 0xA2;
+		// //initialize variables
+		// addr = 0xFFFF;
+		// data = 0xA2;
 
-		//write to eeprom
-		eeprom_write_byte(addr, data); //this function automatically writes and read for us
+		// //write to eeprom
+		// // eeprom_write_byte(addr, data); //this function automatically writes and read for us
 		
-		//read eeprom = 
-		eeprom_read_byte(addr, &data);
+		// // //read eeprom = 
+		// // eeprom_read_byte(addr, &data);
 		
-		eeprom_test() == CY_RSLT_SUCCESS; //set eeprom_test to SUCCESS
+		// // eeprom_test() == CY_RSLT_SUCCESS; //set eeprom_test to SUCCESS
+
+		// printf("REDOING TEST AFTER FIRST TEST FAIL\n\r");
+		// //write_gyro_value(addr, data);
+		// uint8_t gyroX = 0x01;
+		// uint8_t gyroY = 0x04;
+		// uint8_t gyroZ = 0x010;
+		// read_gyro_value(addr);
+		
+		//imu_test(); // == CY_RSLT_SUCCESS; //set imu_test to SUCCESS
 
 		
 		
