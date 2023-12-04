@@ -1,0 +1,267 @@
+/*
+ ******************************************************************************
+ * @file    orientation_6d.c
+ * @author  Sensors Software Solution Team
+ * @brief   This file show how to detect 6D orientation from sensor.
+ *
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+ * All rights reserved.</center></h2>
+ *
+ * This software component is licensed by ST under BSD 3-Clause license,
+ * the "License"; You may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *                        opensource.org/licenses/BSD-3-Clause
+ *
+ ******************************************************************************
+ */
+
+/* ATTENTION: By default the driver is little endian. If you need switch
+ *            to big endian please see "Endianness definitions" in the
+ *            header file of the driver (_reg.h).
+ */
+
+#include "imu.h"
+
+
+/* Private variables ---------------------------------------------------------*/
+static uint8_t whoamI, rst;
+static char tx_buffer[1000];
+static stmdev_ctx_t dev_ctx;
+
+
+/* Private functions ---------------------------------------------------------*/
+static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
+                              uint16_t len);
+static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp,
+                             uint16_t len);
+static void platform_delay(uint32_t ms);
+static void platform_init(void);
+
+
+/* Main Example --------------------------------------------------------------*/
+void imu_orientation(void)
+{
+
+  int16_t linear[3];
+  int16_t angles[3];
+
+  
+  lsm6dsm_acceleration_raw_get(&dev_ctx, linear);
+  lsm6dsm_angular_rate_raw_get(&dev_ctx, angles);
+
+
+
+// Convert to real units
+  float acceleration_scale = 4.0 / 32768.0;  // ±4 g range
+  float angular_rate_scale = 500.0 / 32768.0; // ±500 dps range
+
+float ang_val[3];
+float lin_val[3];
+  
+  char direction[3]; // Array to store direction strings
+  // linear[0] = linear[0] * full scale range
+    for (int i = 0; i < 3; ++i) {
+         ang_val[i] = angles[i] * angular_rate_scale;
+        
+     }
+
+
+    for (int i = 0; i < 3; ++i) {
+        lin_val[i] = linear[i] * acceleration_scale;
+        if (lin_val[i] >= 0){
+            char dir = "R";
+        }
+
+    }
+
+    if (lin_val[0] > 0) {
+        direction[0] = 'R'; // 'R' for positive values
+    } 
+    else {
+        direction[0] = 'L'; // 'L' for negative values
+    }
+
+
+// Print the directions
+    printf("X-axis Direction: %c\n", direction[0]);
+
+  sprintf(tx_buffer, "Linear acceleration:\r\n"
+                      "\tx: %.2f g\r\n"
+                      "\ty: %.2f g\r\n"
+                      "\tz: %.2f g\r\n"
+                      "Angular acceleration:\r\n"
+                      "\tx: %.2f dps\r\n"
+                      "\ty: %.2f dps\r\n"
+                      "\tz: %.2f dps\r\n",
+                      lin_val[0], lin_val[1], lin_val[2],
+                      ang_val[0], ang_val[1], ang_val[2]);
+  printf("%s", tx_buffer);
+}
+
+/*
+ * @brief  Write generic device register (platform dependent)
+ *
+ * @param  handle    customizable argument. In this examples is used in
+ *                   order to select the correct sensor bus handler.
+ * @param  reg       register to write
+ * @param  bufp      pointer to data to write in register reg
+ * @param  len       number of consecutive register to write
+ *
+ */
+static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
+                              uint16_t len)
+{
+  // Set up initial address byte for data transfer
+  uint8_t	address_byte = IMU_RW_WRITE_MASK & reg;   // RW AD6 AD5 AD4 AD3 AD2 AD1 AD0
+
+	// Set the CS Low
+	cyhal_gpio_write(IMU_CS_PIN, 0);
+
+	// Send address byte to IMU
+  cy_rslt_t result = cyhal_spi_transfer(
+    &mSPI,
+    &address_byte,
+    1u,
+    NULL,
+    0u,
+    0xFF
+  );
+
+  // Send payload bytes to IMU
+  result = cyhal_spi_transfer(
+    &mSPI,
+    bufp,
+    len,
+    NULL,
+    0u,
+    0xFF
+  );
+
+  // Set the CS High
+	cyhal_gpio_write(IMU_CS_PIN, 1);
+
+  return result;
+}
+
+/*
+ * @brief  Read generic device register (platform dependent)
+ *
+ * @param  handle    customizable argument. In this examples is used in
+ *                   order to select the correct sensor bus handler.
+ * @param  reg       register to read
+ * @param  bufp      pointer to buffer that store the data read
+ * @param  len       number of consecutive register to read
+ *
+ */
+static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp,
+                             uint16_t len)
+{
+  // Set up initial address byte for data transfer
+  uint8_t address_byte = IMU_RW_READ_SET | reg;   // RW AD6 AD5 AD4 AD3 AD2 AD1 AD0
+
+	// Set the CS Low
+	cyhal_gpio_write(IMU_CS_PIN, 0);
+
+	// Send address byte to IMU
+  cy_rslt_t result1 = cyhal_spi_transfer(
+    &mSPI,
+    &address_byte,
+    1u,
+    NULL,
+    0u,
+    0xFF
+  );
+
+  // Keep sending bytes to IMU to read data from IMU
+  cy_rslt_t result2 = cyhal_spi_transfer(
+    &mSPI,
+    NULL,
+    0u,
+    bufp,
+    len,
+    0xFF
+  );
+
+  // Set the CS High
+	cyhal_gpio_write(IMU_CS_PIN, 1);
+
+  return result1 && result2;
+}
+
+/*
+ * @brief  platform specific delay (platform dependent)
+ *
+ * @param  ms        delay in ms
+ *
+ */
+static void platform_delay(uint32_t ms)
+{
+  cyhal_system_delay_ms(ms);
+}
+
+/*
+ * @brief  platform specific initialization (platform dependent)
+ */
+static void platform_init(void)
+{
+  // Set the IMU CS pin to the high (start with SPI disabled)
+  cyhal_gpio_init(
+    IMU_CS_PIN,
+    CYHAL_GPIO_DIR_OUTPUT,
+    CYHAL_GPIO_DRIVE_STRONG,
+    true
+  );
+
+  // Set IMU control settings
+  uint8_t setting_byte[1];
+  setting_byte[0] = IMU_CTRL3_C;
+  platform_write(NULL, 0x12, setting_byte, 1u);
+
+  /* Initialize mems driver interface */
+  dev_ctx.write_reg = platform_write;
+  dev_ctx.read_reg = platform_read;
+  dev_ctx.handle = NULL;
+  /* Wait sensor boot time */
+  platform_delay(15);
+  /* Check device ID */
+  lsm6dsm_device_id_get(&dev_ctx, &whoamI);
+
+  if (whoamI != LSM6DSM_ID){
+    printf("\tIMU not found\r\n");
+    while (1) {
+      /* manage here device not found */
+    }
+  }
+
+  /* Restore default configuration */
+  lsm6dsm_reset_set(&dev_ctx, PROPERTY_ENABLE);
+
+
+  do {
+    lsm6dsm_reset_get(&dev_ctx, &rst);
+  } while (rst);
+
+
+  /* Set GY Output Data Rate */
+  lsm6dsm_xl_data_rate_set(&dev_ctx, LSM6DSM_XL_ODR_208Hz);
+  lsm6dsm_gy_data_rate_set(&dev_ctx, LSM6DSM_GY_ODR_208Hz);
+  /* Set 4g full XL scale */
+  lsm6dsm_xl_full_scale_set(&dev_ctx, LSM6DSM_4g);
+  lsm6dsm_gy_full_scale_set(&dev_ctx, LSM6DSM_500dps);
+
+}
+
+/** Initializes the IO pins used to control the CS of the
+ *  IMU
+ *
+ * @param
+ *
+ */
+cy_rslt_t imu_cs_init(void)
+{
+  platform_init();
+	return CY_RSLT_SUCCESS;
+}

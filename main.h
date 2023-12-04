@@ -12,9 +12,10 @@
 #include "drivers/push_button.h"
 #include "drivers/console.h"
 #include "drivers/i2c.h"
-#include "drivers/eeprom.h"
+//#include "drivers/eeprom.h"
 //#include "drivers/io_expander.h"
 #include "drivers/LM75.h"
+#include "drivers/imu.h"
 
 
 #endif /* MAIN_H_ */
