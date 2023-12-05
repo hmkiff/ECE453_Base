@@ -25,10 +25,10 @@
 #include "drivers/io-expander.h"
 #include "drivers/LM75.h"
 #include "drivers/VL53L3CX_API_1.2.8/vl53lx_api.h"
-#include "drivers/motor_functions.h"
+#include "drivers/motors/motor_functions.h"
 #include "motion_control.h"
 #include "drivers/ultrasonic.h"
-#include "drivers/drive_commands.h"
+#include "drivers/motors/drive_commands.h"
 
 // Debug
 #include "debug-tools/result_tools.h"
