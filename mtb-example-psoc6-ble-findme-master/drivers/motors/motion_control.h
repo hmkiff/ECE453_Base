@@ -65,9 +65,6 @@ void set_wheel_speeds(double v_left, double v_right);
 // update wheel speeds in robot struct based on robot velocities
 void set_wheel_speeds_from_robot_velocities(double forward_velocity, double angular_velocity);
 
-// returns the sign of a float
-int signf(float num);
-
 // adjusts an angle to fall within pi to negative pi
 float fix_angle_pi_to_neg_pi(float angle);
 

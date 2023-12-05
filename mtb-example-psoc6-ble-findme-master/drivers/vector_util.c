@@ -1,5 +1,15 @@
 #include "vector_util.h"
 
+int signf(float num){
+    if(num>0){
+        return  1;
+    } else if(num < 0){
+        return -1;
+    } else {
+        return 0;
+    }
+}
+
 // Add two 2D vectors
 struct VEC2D addVec(struct VEC2D vec_a, struct VEC2D vec_b){
     struct VEC2D rslt;

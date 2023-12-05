@@ -68,8 +68,14 @@ void kill_motor_signal();
 // sets spin direction of single motor
 void set_motor_direction(struct MOTOR *motor, int direction);
 
+// set direction of wheel based on robot motion
+void set_wheel_direction(struct MOTOR *motor, int direction);
+
 // set duty cycle of single motor
 void set_motor_duty(struct MOTOR *motor, int duty);
+
+// set duty and direction of single motor based on meters/s speed and sign.
+void set_motor_speed_mps(struct MOTOR *motor, float speed);
 
 // set travel direction, forward/reverse/brake
 void set_drive_direction(int direction);

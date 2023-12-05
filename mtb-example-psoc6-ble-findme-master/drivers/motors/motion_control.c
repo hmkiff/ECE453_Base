@@ -31,7 +31,10 @@ void set_wheel_speeds(double v_left, double v_right){
         
         bug.left_wheel_speed = v_left;
         bug.right_wheel_speed = v_right;
-        
+        set_motor_speed_mps(&motorA, v_left);
+        set_motor_speed_mps(&motorB, v_right);
+        drive_update();
+
         // Now compute the new robot velocities based on the new wheel_speeds. 
         // put in Equations (i) and (ii) here based on bug.left_wheel_speed, bug.right_wheel_speed, and bug.wheel_width
         double v_center_y_bf = (v_left + v_right)/2.0;
@@ -43,7 +46,7 @@ void set_wheel_speeds(double v_left, double v_right){
         struct MAT2 rotbf2w = get_rotmat_body_to_world();
         
         // Rotate velocity into world frame - Equation viii  (rotmat * v_center)
-        bug.v_center_world = rotVec( rotbf2w,  v_center_bf);   
+        bug.v_center_world = rotVec( rotbf2w,  v_center_bf);
 }    
 
 // update wheel speeds in robot struct based on robot velocities
@@ -55,16 +58,6 @@ void set_wheel_speeds_from_robot_velocities(double forward_velocity, double angu
         double left_wheel_speed  = forward_velocity - (angular_velocity*WHEEL_WIDTH/2);
         double right_wheel_speed = forward_velocity + (angular_velocity*WHEEL_WIDTH/2);
         set_wheel_speeds(left_wheel_speed, right_wheel_speed);
-}
-
-int signf(float num){
-    if(num>0){
-        return  1;
-    } else if(num < 0){
-        return -1;
-    } else {
-        return 0;
-    }
 }
 
 // Returns adjusted angle from pi to negative pi;

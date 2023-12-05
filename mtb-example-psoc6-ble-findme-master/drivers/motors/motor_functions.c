@@ -85,8 +85,21 @@ void set_motor_direction(struct MOTOR *motor, int direction){
 	}
 }
 
+void set_wheel_direction(struct MOTOR *motor, int direction){
+	if(motor->name == 'b'){
+		set_motor_direction(motor, -direction);
+	} else{
+		set_motor_direction(motor, direction);
+	}
+}
+
 void set_motor_duty(struct MOTOR *motor, int duty){
 	motor->duty = duty;
+}
+
+void set_motor_speed_mps(struct MOTOR *motor, float speed){
+	set_wheel_direction(motor, signf(speed));
+	motor->duty = (int) (MPStoDC*speed)/1;
 }
 
 void set_drive_direction(int direction){

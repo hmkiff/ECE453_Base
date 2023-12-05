@@ -19,6 +19,9 @@ struct MAT2{
     double d;
 };
 
+// returns the sign of a float
+int signf(float num);
+
 // Add two 2D vectors
 struct VEC2D addVec(struct VEC2D vec_a, struct VEC2D vec_b);
 
