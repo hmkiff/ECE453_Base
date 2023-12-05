@@ -79,7 +79,7 @@ void set_motor_direction(struct MOTOR *motor, int direction){
 		motor->sig2active = 1;
 	}
 	// brake
-	else if(direction = 0){
+	else if(direction == 0){
 		motor->sig1active = 0;
 		motor->sig2active = 0;
 	}
@@ -102,7 +102,7 @@ void set_drive_direction(int direction){
 		set_motor_direction(&motorB, 1);
 	}
 	// brake
-	else if(direction = 0){
+	else if(direction == 0){
 		set_motor_direction(&motorA, 0);
 		set_motor_direction(&motorB, 0);
 	}
@@ -118,37 +118,6 @@ void drive_update(){
 	set_drive_motor_signal(&motorA, 2, motorA.sig2active * motorA.duty);
 	set_drive_motor_signal(&motorB, 1, motorB.sig1active * motorB.duty);
 	set_drive_motor_signal(&motorB, 2, motorB.sig2active * motorB.duty);
-}
-
-
-
-
-
-
-
-
-void drive_line(int distance_cm, float speed_mps){
-	int duty = speed_mps * MPStoDC;
-	set_drive_direction(1);
-	set_drive_duty(duty);
-	drive_update();
-	cyhal_system_delay_ms((distance_cm*1000)/speed_mps);
-	set_drive_duty(0);
-	set_drive_direction(0);
-	drive_update();
-	printf("Line Complete\r\n");
-}
-
-void drive_arc(float turn_radius, float speed_mps, int direction){
-	int duty = speed_mps * MPStoDC;
-	set_drive_direction(FORWARD);
-	int inner_rad = (turn_radius - (WHEEL_WIDTH/2));
-	int outer_rad = (turn_radius + (WHEEL_WIDTH/2));
-	int speed_left = 0;
-	int speed_right = 0;
-	set_motor_duty(&motorA, speed_left);
-	set_motor_duty(&motorB, speed_right);
-	drive_update();
 }
 
 void print_motor(struct MOTOR * motor){

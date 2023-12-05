@@ -15,6 +15,8 @@
 #include "cyhal.h"
 #include "cybsp.h"
 
+#include "vector_util.h"
+
 // Pin definitions for drive motors
 #define PIN_MOTOR_1A    P10_6 // 
 #define PIN_MOTOR_2A    P10_4 // 
@@ -28,7 +30,7 @@
 // Wheel Constants
 #define RADIUS          53.3    // [mm]
 #define CIRCUMFERENCE   336.15  // [mm]
-#define WHEEL_WIDTH     200     // distance between both wheels (width of robot)
+#define WHEEL_WIDTH     250     // distance between both wheels (width of robot)
 #define MAX_SPEED       1.15    // [m/s]
 #define RPMtoDC         0.005   // [1/200rpm]
 #define MPStoDC         89.6    // [(1000mm/m * 60sec/min * 100%) / (53.3mm * 2 * pi * 200rpm)]
@@ -77,13 +79,6 @@ void set_drive_duty(int duty);
 
 // updates all drive motor pwms with the corresponding values from the motor structs.
 void drive_update();
-
-
-// Tells the robot to drive in a straight line of 'distance_cm' [cm] at a 'speed_mps' [m/s]
-void drive_line(int distance_cm, float speed_mps);
-
-// Tells the robot to drive in an arc with a 'turn_radius' at 'speed_mps' in 'direction'.
-void drive_arc(float turn_radius, float speed_mps, int direction);
 
 // prints contents of MOTOR struct.
 void print_motor(struct MOTOR * motor);

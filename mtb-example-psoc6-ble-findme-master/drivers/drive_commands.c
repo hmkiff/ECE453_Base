@@ -20,7 +20,7 @@ void singleDrive(char name, int signal){
 	struct MOTOR * motor = charToMotor(name);
 	cyhal_pwm_t * pwm_obj = motor->motor_pwm[signal_index];
 
-	printf("Motor%s signal %d test \r\n", name, signal);
+	printf("Motor%c signal %d test \r\n", name, signal);
 	
 	cyhal_pwm_stop(pwm_obj);
 	for(int i = 4; i < 11; i++){
@@ -33,7 +33,7 @@ void singleDrive(char name, int signal){
 		cyhal_system_delay_ms(2000);
 	}
 	cyhal_pwm_stop(pwm_obj);
-	printf("End Motor %s signal %d test\r\n", name, signal);
+	printf("End Motor %c signal %d test\r\n", name, signal);
 }
 
 bool isMotorString(char * str){
