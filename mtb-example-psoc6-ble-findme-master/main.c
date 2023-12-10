@@ -78,7 +78,8 @@
 #define ENABLE_ULTRASONIC 1
 
 // Bot state information
-botstate state[NUM_BOTS];
+botstate bot_state[NUM_BOTS];
+int bot_num = -1;
 
 int main(void) {
 
@@ -160,6 +161,8 @@ int main(void) {
 				} else {
 					strcpy(cmdStr, pcInputString);
 				}
+
+				// IR test commands
 				if (strncmp(cmdStr, "IR test", 7) == 0) {
 					char ch_num_str = cmdStr[8];
 					int ch_num = atoi(&ch_num_str);
@@ -177,6 +180,8 @@ int main(void) {
 					ir_read(ch_num, 5, true);
 				} else if (strncmp(cmdStr, "IR reboot", 9) == 0) {
 					ir_boot();
+				
+				// Servo test commands
 				}  else if (strncmp(cmdStr, "servo ", 6) == 0) {
 					int servo_angle = atoi(&cmdStr[6]);
 					printf("CMD result: Setting servo angle to %d\r\n", servo_angle);
@@ -184,32 +189,38 @@ int main(void) {
 					if(servo_angle < 0 || servo_angle > 180){
 						printf("CMD warning: Servo angle was out-of-bounds and rectified to 0 or 180\r\n");
 					}
-				} else if (strncmp(pcInputString, "distance ", 9) == 0) {
-			  		//int servo_angle = atoi(&pcInputString[9]);
+
+				// US test commands
+				} else if (strncmp(cmdStr, "distance ", 9) == 0) {
+			  		//int servo_angle = atoi(&cmdStr[9]);
 			  		printf("CMD result: Read Distance measurements.\r\n");
 			  		// uint32_t echodist1;
 			  		// uint32_t echodist2;
 			  		printf("ECHO 1: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO1));
 			  		printf("ECHO 2: %f cm\r\n", ultrasonic_get_object_distance(PIN_ECHO2));
-			  	} else if (strncmp(pcInputString, "motors ", 7) == 0){
+			  	
+				// Motors test commands
+				} else if (strncmp(cmdStr, "motors ", 7) == 0){
 			  		char sig_str[2];
-			  		sig_str[0] = pcInputString[7];
-			  		sig_str[1] = pcInputString[8];
-			  		int duty = atoi(&pcInputString[10]);
+			  		sig_str[0] = cmdStr[7];
+			  		sig_str[1] = cmdStr[8];
+			  		int duty = atoi(&cmdStr[10]);
 			  		DriveMotor(&motorA, sig_str, duty);
 					cyhal_system_delay_ms(1000);
 			  		DriveMotor(&motorB, sig_str, duty);
-			  	} else if (strncmp(pcInputString, "drive ", 6) == 0){
+			  	} else if (strncmp(cmdStr, "drive ", 6) == 0){
 			  		char sig_str[2];
-			  		sig_str[0] = pcInputString[6];
-			  		sig_str[1] = pcInputString[7];
-			  		int duty = atoi(&pcInputString[9]);
+			  		sig_str[0] = cmdStr[6];
+			  		sig_str[1] = cmdStr[7];
+			  		int duty = atoi(&cmdStr[9]);
 					DriveBot(sig_str, duty);
-				} else if (strncmp(pcInputString, "test_motor ", 11) == 0){
+				} else if (strncmp(cmdStr, "test_motor ", 11) == 0){
 					char sig_str[2];
-			  		sig_str[0] = pcInputString[11];
-			  		int signal = atoi(pcInputString[12]);
+			  		sig_str[0] = cmdStr[11];
+			  		int signal = atoi(cmdStr[12]);
 					singleDrive(sig_str[0], signal); 
+
+				// IMU test commands
 				} else if (strncmp(cmdStr, "IMU ", 4) == 0) {
 					if (ENABLE_SPI) {
 						if (ENABLE_IMU) {
@@ -220,6 +231,17 @@ int main(void) {
 					} else {
 						printf("CMD fail: SPI not enabled.\r\n");
 					}
+
+				// BT chain commands
+				} else if (strncmp(cmdStr, "BT chain start", 14) == 0) {
+					printf("CMD result: Starting BT chain\r\n");
+					ble_chain_start();
+
+				} else if (strncmp(cmdStr, "BT chain join", 13) == 0) {
+					printf("CMD result: Joining BT chain\r\n");
+					ble_chain_join();
+
+				// Command fail
 				} else {
 					printf("CMD fail: command not recognized.\r\n");
 				}
@@ -234,14 +256,14 @@ int main(void) {
 			// Sweep ultrasonic
 
 			// Gather new sensor data into own botstate
-			state[0].us_echo1_cm = ultrasonic_get_object_distance(PIN_ECHO1);
-			state[0].us_echo2_cm = ultrasonic_get_object_distance(PIN_ECHO2);
-			state[0].servo_ang_rad = 0;
+			bot_state[bot_num].us_echo1_cm = ultrasonic_get_object_distance(PIN_ECHO1);
+			bot_state[bot_num].us_echo2_cm = ultrasonic_get_object_distance(PIN_ECHO2);
+			bot_state[bot_num].servo_ang_rad = 0;
 
 			// Collect other botstates over bt
 
 			// Pass botstates to swarm algorithm to get next position
-			botpos next_pos = swarm(state, 0);
+			botpos next_pos = swarm(bot_state, 0);
 
 			// Move to position
 		}
