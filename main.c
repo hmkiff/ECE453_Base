@@ -85,7 +85,7 @@ int main(void)
 				imu_orientation();
 				
 				
-				Cy_SysLib_Delay(3000);
+				Cy_SysLib_Delay(1000);
 			}
 			
 		}
@@ -135,7 +135,7 @@ int main(void)
 		//write SPI CLI implementation here
 		//declare variables
 
-    	Cy_SysLib_Delay(1000);
+    	Cy_SysLib_Delay(5);
 
 		
 		//uint16_t addr;

@@ -92,8 +92,8 @@ float t_time = 1.0/208.0; //fixed time inmterval equal to date rate
 
     for (int i = 0; i < 3; ++i) {
         lin_val[i] = linear[i] * acceleration_scale;
-        lin_velocity [i] = lin_val[i] * t_time + ini_lin_velocity;
-        lin_position[i] = (ini_lin_velocity * t_time) + (0.5 * lin_val[i] * t_time * t_time) + ini_lin_position;
+        lin_velocity [i] = 9.81 * lin_val[i] * t_time + ini_lin_velocity;
+        lin_position[i] = (ini_lin_velocity * t_time) + (0.5 * 9.81 * lin_val[i] * t_time * t_time) + ini_lin_position;
 
         
         ini_lin_position = lin_position[i];
