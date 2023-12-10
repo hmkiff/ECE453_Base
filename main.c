@@ -80,10 +80,12 @@ int main(void)
     if (spi_init() == CY_RSLT_SUCCESS)
     {
 		if(imu_cs_init() == CY_RSLT_SUCCESS){
+			
 			for(;;){
-
-				get_orientation();
-				Cy_SysLib_Delay(30);
+				imu_orientation();
+				
+				
+				Cy_SysLib_Delay(3000);
 			}
 			
 		}

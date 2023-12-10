@@ -61,10 +61,30 @@ void imu_orientation(void)
 float ang_val[3];
 float lin_val[3];
   
-  char direction[3]; // Array to store direction strings
+  char direction[3]; 
+
+  //calculate position and velocity
+float t_time = 1.0/208.0; //fixed time inmterval equal to date rate 
+
+
+  float ini_lin_velocity = 0.0;
+  float ini_lin_position = 0.0;
+  float lin_velocity[3];
+  float lin_position[3];
+
+  float ini_ang_position = 0.0;
+  float ang_position[3];
+  //float ang_velocity[3] = ang_val[3];
+  // Array to store direction strings
   // linear[0] = linear[0] * full scale range
     for (int i = 0; i < 3; ++i) {
          ang_val[i] = angles[i] * angular_rate_scale;
+          ang_position[i] = ang_val[i] * t_time + ini_ang_position;
+        
+        
+        ini_ang_position = ang_position[i];
+
+
 
         
      }
@@ -72,41 +92,90 @@ float lin_val[3];
 
     for (int i = 0; i < 3; ++i) {
         lin_val[i] = linear[i] * acceleration_scale;
+        lin_velocity [i] = lin_val[i] * t_time + ini_lin_velocity;
+        lin_position[i] = (ini_lin_velocity * t_time) + (0.5 * lin_val[i] * t_time * t_time) + ini_lin_position;
+
+        
+        ini_lin_position = lin_position[i];
+        ini_lin_velocity = lin_velocity[i];
+
 
     }
 
+    sprintf(tx_buffer, "Linear Velocity:\r\n"
+                       "\tx: %.5f m/s\r\n"
+                       "\ty: %.5f m/s\r\n"
+                       "\tz: %.5f m/s\r\n"
+                       "Angular Velocity:\r\n"
+                       
+                       "\tz: %.5f dps\r\n",
+                       lin_velocity[0], lin_velocity[1], lin_velocity[2],
+                        ang_val[2]);
 
-    for (int j = 0; j < 2; ++j){
-        if (lin_val[0] > 0) {
-        direction[0] = 'R'; // 'R' for positive values
-    } 
-        else {
-            direction[0] = 'L'; // 'L' for negative values
-         }
+printf("%s", tx_buffer);
 
-         if (lin_val[1] > 0) {
-        direction[1] = 'R'; // 'R' for positive values
-    } 
-        else {
-            direction[1] = 'L'; // 'L' for negative values
-         }
-    }
-    
+sprintf(tx_buffer, "Linear position:\r\n"
+                    "\tx: %.7f m\r\n"
+                    "\ty: %.7f m\r\n"
+                    "\tz: %.7f m\r\n"
+                    "Angular position:\r\n"
+                    
+                    "\tz: %.7f degrees\r\n",
+                    lin_position[0], lin_position[1], lin_position[2],
+                     ang_position[2]);
+
+printf("%s", tx_buffer);
 
 
-// Print the directions
-    // printf("X-axis Direction: %c\n\r", direction[0]);
-    //  printf("X-axis Direction: %c\n\r", direction[1]);
+//     //check orientation by setting threshold
 
-  sprintf(tx_buffer, "Linear acceleration:\r\n"
-                      "\tx: %c \r\n"
-                      "\ty: %c \r\n",
-                      
-                      
-                      direction[0], direction[1]
-                      );
-  printf("%s", tx_buffer);
+//     float thres_hold_x = 0.0;
+//     float thres_hold_y = 0.0;
+
+//     //check left of right orientation
+//     if(lin_val[0] > 0){
+//         direction[0] = 'R'; // 'R' for positive values
+//         thres_hold_x = lin_val[0];
+//     }
+//     else if (lin_val[0] < 0){
+//         direction[0] = 'L'; // 'R' for positive values
+//         thres_hold_x = lin_val[0];
+//     }
+
+//     //check forward or backward orientation
+//     if(lin_val[1] > 0){
+//         direction[1] = 'F'; // 'R' for positive values
+//         thres_hold_x = lin_val[1];
+//     }
+//     else if (lin_val[1] < 0){
+//         direction[1] = 'B'; // 'R' for positive values
+//         thres_hold_y = lin_val[1];
+//     }
+//     // for( int j = 0; j < 2; ++j){
+        
+//     //     if (lin_val[] > thres_hold){
+
+//     //         thres_hold = lin_val[j];
+//     //     }
+//     // }
+//     // for (int j = 0; j < 2; ++j){
+//     //     if (lin_val[0] > 0) {
+//     //     direction[0] = 'R'; // 'R' for positive values
+//     // } 
+//     //     else {
+//     //         direction[0] = 'L'; // 'L' for negative values
+//     //      }
+
+//     //      if (lin_val[1] > 0) {
+//     //     direction[1] = 'R'; // 'R' for positive values
+//     // } 
+//     //     else {
+//     //         direction[1] = 'L'; // 'L' for negative values
+//     //      }
+//     // }
+  
 }
+
 
 
 // sprintf(tx_buffer, "Linear acceleration:\r\n"
@@ -285,6 +354,13 @@ cy_rslt_t imu_cs_init(void)
 	return CY_RSLT_SUCCESS;
 }
 
+void get_position(void){
+    //imu_orientation()
+    
+}
+
+
 void get_orientation(void){
-    imu_orientation();
+    
+    //imu_orientation();
 }
