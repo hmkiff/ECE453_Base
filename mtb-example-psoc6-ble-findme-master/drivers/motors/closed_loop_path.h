@@ -34,7 +34,7 @@
 // Closed-loop controller parameters: get them from the ROS parameters imported from the YAML file. 
 #define VMAX 0.6
 #define BETA 2.0
-#define GAMMA 10
+#define GAMMA 1
 #define ANGLE_FOCUS 0.1
 
 // initial situation is that the path is NOT complete.

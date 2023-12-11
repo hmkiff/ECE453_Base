@@ -30,7 +30,7 @@
 // Wheel Constants
 #define RADIUS          53.3    // [mm]
 #define CIRCUMFERENCE   336.15  // [mm]
-#define WHEEL_WIDTH     250     // distance between both wheels (width of robot)
+#define WHEEL_WIDTH     0.250     // distance between both wheels (width of robot)
 #define MAX_SPEED       1.15    // [m/s]
 #define RPMtoDC         0.005   // [1/200rpm]
 #define MPStoDC         89.6    // [(1000mm/m * 60sec/min * 100%) / (53.3mm * 2 * pi * 200rpm)]
