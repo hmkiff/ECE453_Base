@@ -81,7 +81,7 @@ void swarm_main() {
 		int nearest_val = 9000;
 		for (int i = 0; i < NUM_IR; i++) {
 			my_state.ir_data[i] = multi_ir_data_store[i];
-			int this_near = my_state.ir_data[i].RangeData->RangeMinMilliMeter;
+			int this_near = my_state.ir_data[i].RangeData->RangeMaxMilliMeter;
 			if ((i < 3) && (this_near < nearest_val)) {
 				nearest_ind = i;
 				nearest_val = this_near;
@@ -262,6 +262,10 @@ int main(void) {
 					printf("CMD result: Joining BT chain\r\n");
 					ble_chain_join();
 					swarm_main();
+				} else if (strncmp(cmdStr, "sizeof botstate", 15) == 0) {
+					printf("CMD result: botstate is %i bytes\r\n", sizeof(botstate));
+
+				// Nav commands
 				} else if(strncmp(cmdStr, "navmode", 7) == 0){
 					int index = 0;
     				int waypoint_index;
