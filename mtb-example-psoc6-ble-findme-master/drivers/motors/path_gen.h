@@ -20,17 +20,27 @@
 #include "vector_util.h"
 
 #define QLENGTH 25
+#define WAYPOINT_TOL 1.0
 
 extern struct PATHSPEC * path_queue[QLENGTH];
 extern int pathlength;
 extern struct POSE * est_pose;
+extern struct POSE * target_pose;
+bool waypoint_complete = false;
+
+
 
 
 
 
 #endif
 
-// loops the path_specs array. 
+void createWaypointPath(struct POSE est_pose);
+
+void waypointLoop();
+
+struct POSE newPose();
+// loops the path_specs array.
 void pathLoop();
 
 // updates target for bug

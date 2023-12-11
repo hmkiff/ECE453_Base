@@ -41,6 +41,7 @@
 bool forward_only = true; 
 bool path_is_complete = false;
 
+
 extern struct PATHSPEC path_segment_spec;
 extern struct POSE estimated_pose_previous;
 
