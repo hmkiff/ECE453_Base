@@ -19,9 +19,9 @@ void print_botstate(botstate state) {
     printf("IMU\r\n");
     printf("---\r\n");
 
-    printf("- Roll: %f rad\r\n", state.imu_roll_rad);
-    printf("- Pitch: %f rad\r\n", state.imu_pitch_rad);
-    printf("- Yaw: %f rad\r\n", state.imu_yaw_rad);
+    // printf("- Roll: %f rad\r\n", state.imu_roll_rad);
+    // printf("- Pitch: %f rad\r\n", state.imu_pitch_rad);
+    // printf("- Yaw: %f rad\r\n", state.imu_yaw_rad);
     
     printf("----------\r\n");
     printf("Ultrasonic\r\n");
