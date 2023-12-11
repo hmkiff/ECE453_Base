@@ -71,34 +71,43 @@
 botstate state[NUM_BOTS];
 
 void swarm_main() {
+	while (true) {
+		// Gather new sensor data into own botstate
+		botstate my_state = state[0];
 
-	// Gather new sensor data into own botstate
-	botstate my_state = state[0];
+		// IR
+		ir_read_all_until_valid(5, true);
+		int nearest_ind = 0;
+		int nearest_val = 9000;
+		for (int i = 0; i < NUM_IR; i++) {
+			my_state.ir_data[i] = multi_ir_data_store[i];
+			int this_near = my_state.ir_data[i].RangeData->RangeMinMilliMeter;
+			if ((i < 3) && (this_near < nearest_val)) {
+				nearest_ind = i;
+				nearest_val = this_near;
+			}
+		}
 
-	// IR
-	ir_read_all_until_valid(5, false);
-	for (int i = 0; i < NUM_IR; i++) {
-		my_state.ir_data[i] = multi_ir_data_store[i];
+		// Aim ultrasonic at nearest ir
+		set_servo_angle(180 - (nearest_ind * 90));
+
+		// US
+		// my_state.us_echo1_cm = ultrasonic_get_object_distance(PIN_ECHO1);
+		// my_state.us_echo2_cm = ultrasonic_get_object_distance(PIN_ECHO2);
+		my_state.servo_ang_rad = ultrasonic_angle;
+
+		// IMU
+
+		// Save, report
+		state[0] = my_state;
+		print_botstate(state);
+
+		// Collect other botstates over bt
+
+		// Pass botstates to swarm algorithm to get next position
+
+		// Move to position
 	}
-
-	// Aim ultrasonic at nearest ir
-
-	// US
-	my_state.us_echo1_cm = ultrasonic_get_object_distance(PIN_ECHO1);
-	my_state.us_echo2_cm = ultrasonic_get_object_distance(PIN_ECHO2);
-	my_state.servo_ang_rad = ultrasonic_angle;
-
-	// IMU
-
-	// Save, report
-	state[0] = my_state;
-	print_botstate(state);
-
-	// Collect other botstates over bt
-
-	// Pass botstates to swarm algorithm to get next position
-
-	// Move to position
 }
 
 int main(void) {
@@ -124,7 +133,7 @@ int main(void) {
 	if (ENABLE_I2C) {
 		printf("* -- Initializing I2C Bus\n\r");
 		i2c_init();
-		//ir_boot();
+		ir_boot();
 	}
 
 	#if ENABLE_SPI
@@ -260,7 +269,7 @@ int main(void) {
     				while(!waypoint_complete){
     				    waypoint_index = (index % QLENGTH);
     				    // target_pose = newPose();
-    				    // IMU_read();
+    				    getEstPose();
     				    createWaypointPath(estimated_pose);
     				    path_follow(estimated_pose);
     				    if(waypoint_complete){
