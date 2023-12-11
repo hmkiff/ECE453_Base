@@ -68,9 +68,7 @@
 
 // Device enables
 // SPI device enables
-#define ENABLE_SPI 0
-#define ENABLE_IMU 0
-#define ENABLE_EEPROM 0
+#define ENABLE_SPI 1
 // I2C device enables
 #define ENABLE_I2C 1
 // PWM device enables
@@ -107,30 +105,16 @@ int main(void) {
 		//ir_boot();
 	}
 
-	if (ENABLE_SPI) {
+	#if ENABLE_SPI
 		printf("* -- Initializing SPI Bus\n\r");
-		cy_rslt_t rslt = spi_init();
-		if (rslt == CY_RSLT_SUCCESS) {
-			if (ENABLE_EEPROM) {
-				if (eeprom_cs_init() == CY_RSLT_SUCCESS) {
-					if(eeprom_test() != CY_RSLT_SUCCESS) {
-						// Something is wrong wit the EEPROM
-						while(1){};
-					}
-				}
-			}
-			if (ENABLE_IMU) {
-				cy_rslt_t rslt = imu_cs_init();
-				if (rslt != CY_RSLT_SUCCESS) {
-					print_result(rslt);
-					return -1;
-				}
+		if (spi_init() == CY_RSLT_SUCCESS) {
+			if (imu_cs_init() != CY_RSLT_SUCCESS) {
+				printf("Error: Failed to initialize IMU chip select\n\r");
 			}
 		} else {
-			print_result(rslt);
-			return -1;
+			printf("Error: Failed to initialize SPI\n\r");
 		}
-	}
+	#endif
 
 	#if ENABLE_MOTOR
 		printf("* -- Initializing Motor Functions\n\r");
@@ -230,13 +214,9 @@ int main(void) {
 					singleDrive(sig_str[0], signal); 
 
 				// IMU test commands
-				} else if (strncmp(cmdStr, "IMU ", 4) == 0) {
+				} else if (strncmp(cmdStr, "IMU read", 8) == 0) {
 					if (ENABLE_SPI) {
-						if (ENABLE_IMU) {
-							// IMU read here
-						} else {
-							printf("CMD fail: IMU not enabled.\r\n");
-						}
+						imu_orientation();
 					} else {
 						printf("CMD fail: SPI not enabled.\r\n");
 					}

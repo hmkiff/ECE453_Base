@@ -19,6 +19,7 @@
 #include "drivers/push_button.h"
 #include "drivers/console.h"
 #include "drivers/i2c.h"
+#include "drivers/imu.h"
 #include "drivers/ir.h"
 #include "drivers/ir_mux.h"
 #include "drivers/eeprom.h"
