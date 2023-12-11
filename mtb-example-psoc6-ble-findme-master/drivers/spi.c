@@ -31,10 +31,10 @@ cy_rslt_t spi_init(void)
 						);
 
     if (rslt == CY_RSLT_SUCCESS)
-    {
+    	{
         // Set the data rate to 1 Mbps
     	rslt = cyhal_spi_set_frequency(&mSPI, SPI_FREQ);
-    }
+   	 	}
 
 	return rslt;
 
