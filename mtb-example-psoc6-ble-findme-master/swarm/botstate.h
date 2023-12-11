@@ -24,6 +24,7 @@ typedef struct {
     float us_echo1_cm;
     float us_echo2_cm;
 
+    // struct of two floats: x and y currently in cm, but units can change later.
     struct POSITION closest_obstacle;
 
 } botstate;
