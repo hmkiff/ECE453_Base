@@ -30,7 +30,8 @@
 #define IMU_CTRL3_C 0x76
 
 /* Extern variables ----------------------------------------------------------*/
-
+extern float ang_position[3];
+extern float lin_position[3];
 
 /*
  *   WARNING:

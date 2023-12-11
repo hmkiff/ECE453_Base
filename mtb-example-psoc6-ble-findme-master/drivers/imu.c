@@ -31,6 +31,9 @@ static uint8_t whoamI, rst;
 static char tx_buffer[1000];
 static stmdev_ctx_t dev_ctx;
 
+/* Global Variables ----------------------------------------------------------*/
+float ang_position[3];
+float lin_position[3];
 
 /* Private functions ---------------------------------------------------------*/
 static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
@@ -66,10 +69,10 @@ void imu_orientation(void) {
     float ini_lin_velocity = 0.0;
     float ini_lin_position = 0.0;
     float lin_velocity[3];
-    float lin_position[3];
+    
   
     float ini_ang_position = 0.0;
-    float ang_position[3];
+    
     //float ang_velocity[3] = ang_val[3];
     // Array to store direction strings
     // linear[0] = linear[0] * full scale range

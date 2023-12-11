@@ -249,6 +249,7 @@ int main(void) {
 						ALERT_CONSOLE_RX = false;
 						ALERT_BT_RX = false;
 						if(strncmp(cmdStr, "waypoint ", 9) == 0){
+							waypoint_complete = false;
 							struct POSE newPose;
 							char xStr[2] = {cmdStr[9],  cmdStr[10]};
 							char yStr[2] = {cmdStr[12], cmdStr[13]};
