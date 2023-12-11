@@ -3,25 +3,28 @@
 
 #include "../drivers/VL53L3CX_API_1.2.8/vl53lx_def.h"
 #include "../drivers/ir.h"
+#include "../drivers/motors/path_gen.h"
+#include "../drivers/ultrasonic.h"
 
 void print_botstate();
 
 typedef struct {
 
+    // Motion
+    // three doubles : x, y, theta (rads)  this will hold the estimated position of the bot.
+    struct POSE bot_pose;  
+    // same struct but this will hold the current target_pose of the bot. 
+    struct POSE current_target;
+
     // IR
     VL53LX_MultiRangingData_t ir_data[NUM_IR];
-
-    // These measurements should be relative to the bot,
-    // where 0 rad is +x, or directly to the right of the bot.
-    // IMU
-    float imu_roll_rad;
-    float imu_pitch_rad;
-    float imu_yaw_rad;
 
     // Ultrasonic
     float servo_ang_rad;
     float us_echo1_cm;
     float us_echo2_cm;
+
+    struct POSITION closest_obstacle;
 
 } botstate;
 
