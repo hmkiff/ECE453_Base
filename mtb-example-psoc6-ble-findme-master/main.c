@@ -284,7 +284,7 @@ int main(void) {
 							waypoint_complete = false;
 							struct POSE newPose;
 							char xStr[2] = {cmdStr[9],  cmdStr[10], cmdStr[11], cmdStr[12]};
-							char yStr[2] = {cmdStr[13], cmdStr[14], cmdStr[15], cmdStr[16]};
+							char yStr[2] = {cmdStr[14], cmdStr[15], cmdStr[16], cmdStr[17]};
 							double x = atof(&xStr);
 							double y = atof(&yStr);
 							newPose.x = 	x;
