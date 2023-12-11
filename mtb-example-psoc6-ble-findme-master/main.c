@@ -269,7 +269,7 @@ int main(void) {
     				while(!waypoint_complete){
     				    waypoint_index = (index % QLENGTH);
     				    // target_pose = newPose();
-    				    // IMU_read();
+    				    getEstPose();
     				    createWaypointPath(estimated_pose);
     				    path_follow(estimated_pose);
     				    if(waypoint_complete){
