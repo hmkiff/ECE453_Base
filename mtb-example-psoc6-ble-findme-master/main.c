@@ -191,8 +191,9 @@ int main(void) {
 			  	} else if (strncmp(cmdStr, "locate", 6) == 0) {
 			  		printf("CMD result: Locating Object (if present).\r\n");
 			  		ultrasonic_locate_object();
-			  	} 
-				// motors test commands
+			  	
+				// Motors test commands
+				}
 				else if (strncmp(cmdStr, "motors ", 7) == 0){
 			  		char sig_str[2];
 			  		sig_str[0] = cmdStr[7];
@@ -229,6 +230,36 @@ int main(void) {
 				} else if (strncmp(cmdStr, "BT chain join", 13) == 0) {
 					printf("CMD result: Joining BT chain\r\n");
 					ble_chain_join();
+				} else if(strncmp(cmdStr, "navmode", 7) == 0){
+					int index = 0;
+    				int waypoint_index;
+    				int updateDelay = 100;  // 100 ms 10Hz
+    				while(!waypoint_complete){
+    				    waypoint_index = (index % QLENGTH);
+    				    // target_pose = newPose();
+    				    // IMU_read();
+    				    createWaypointPath(estimated_pose);
+    				    path_follow(estimated_pose);
+    				    if(waypoint_complete){
+    				        index++;
+    				    }
+
+    				    cyhal_system_delay_ms(updateDelay);
+						cInputIndex = 0;
+						ALERT_CONSOLE_RX = false;
+						ALERT_BT_RX = false;
+						if(strncmp(cmdStr, "waypoint ", 9) == 0){
+							struct POSE newPose;
+							char xStr[2] = {cmdStr[9],  cmdStr[10]};
+							char yStr[2] = {cmdStr[12], cmdStr[13]};
+							double x = atof(&xStr);
+							double y = atof(&yStr);
+							newPose.x = 	x;
+							newPose.y = 	y;
+							newPose.theta =	0;
+							waypoints[waypoint_index+1] = newPose;
+						}
+    				}
 
 				// Command fail
 				} else {

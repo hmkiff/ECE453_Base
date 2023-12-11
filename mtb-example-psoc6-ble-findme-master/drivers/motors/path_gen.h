@@ -20,22 +20,20 @@
 #include "vector_util.h"
 
 #define QLENGTH 25
-#define WAYPOINT_TOL 1.0
+#define WAYPOINT_TOL 0.05
 
-extern struct PATHSPEC * path_queue[QLENGTH];
+extern struct PATHSPEC path_queue[QLENGTH];
 extern int pathlength;
-extern struct POSE * est_pose;
-extern struct POSE * target_pose;
-bool waypoint_complete = false;
-
-
-
-
+extern int path_traveled;
+extern struct POSE estimated_pose;
+extern struct POSE target_pose;
+extern struct POSE waypoints[QLENGTH];
+extern bool waypoint_complete;
 
 
 #endif
 
-void createWaypointPath(struct POSE * est_pose);
+void createWaypointPath(struct POSE est_pose);
 
 void waypointLoop();
 

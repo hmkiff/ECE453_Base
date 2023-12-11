@@ -27,15 +27,15 @@
 // Get parameters from rosparam
 // All you have when planning is a model - you never quite know the truth! 
 #define BODY_LENGTH
-#define WHL_DIAMETER
-#define WHL_RADIUS
+#define WHL_DIAMETER 106.6
+#define WHL_RADIUS 53.3
 
 
 // Closed-loop controller parameters: get them from the ROS parameters imported from the YAML file. 
-#define VMAX 0.0
-#define BETA 0.0
-#define GAMMA 0.0
-#define ANGLE_FOCUS 0.0
+#define VMAX 0.6
+#define BETA 2.0
+#define GAMMA 10
+#define ANGLE_FOCUS 0.1
 
 // initial situation is that the path is NOT complete.
 extern bool forward_only;
@@ -50,6 +50,6 @@ void set_path_complete(bool msg_in);
 
 void update_path(struct PATHSPEC path_msg_in);
 
-void path_follow(struct POSE * pose_msg_in);
+void path_follow(struct POSE pose_msg_in);
 
 #endif

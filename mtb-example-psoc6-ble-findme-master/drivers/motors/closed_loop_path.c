@@ -45,10 +45,10 @@ void update_path(struct PATHSPEC path_msg_in){
 // =============================================================================
 // // Function to update the path tracking control based on the robot's estimated position
 // =============================================================================
-void path_follow(struct POSE * pose_msg_in){
+void path_follow(struct POSE pose_msg_in){
     // First assign the incoming message
-    struct POSE estimated_pose = * pose_msg_in;
-    struct VEC2D pose_xy = {estimated_pose.x, estimated_pose.y};
+    struct POSE est_pose = pose_msg_in;
+    struct VEC2D pose_xy = {est_pose.x, est_pose.y};
 
     double estimated_y_local;
     double estimated_x_local;
@@ -57,7 +57,7 @@ void path_follow(struct POSE * pose_msg_in){
     double estimated_segment_forward_pos;
     double estimated_segment_completion_fraction;
 
-    float pose_theta = {estimated_pose.theta};
+    float pose_theta = {est_pose.theta};
     if(isinf(path_segment_spec.Length)){
         return;
     }
@@ -137,12 +137,11 @@ void path_follow(struct POSE * pose_msg_in){
     estimated_theta_local = fix_angle_pi_to_neg_pi(estimated_theta_local);
 
     // Update the "previous" values 
-    estimated_pose_previous = estimated_pose;
+    estimated_pose_previous = est_pose;
     estimated_x_local_previous = estimated_x_local;
     estimated_theta_local_previous = estimated_theta_local;
     path_segment_curvature_previous = path_segment_curvature;
     estimated_segment_completion_fraction_previous = estimated_segment_completion_fraction;  
-
 
     // =============================================================================
     //     // CONTROLLER for path tracking based on local position and curvature. 
