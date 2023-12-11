@@ -81,7 +81,7 @@ void swarm_main() {
 		int nearest_val = 9000;
 		for (int i = 0; i < NUM_IR; i++) {
 			my_state.ir_data[i] = multi_ir_data_store[i];
-			int this_near = my_state.ir_data[i].RangeData->RangeMinMilliMeter;
+			int this_near = my_state.ir_data[i].RangeData->RangeMaxMilliMeter;
 			if ((i < 3) && (this_near < nearest_val)) {
 				nearest_ind = i;
 				nearest_val = this_near;
@@ -262,6 +262,10 @@ int main(void) {
 					printf("CMD result: Joining BT chain\r\n");
 					ble_chain_join();
 					swarm_main();
+				} else if (strncmp(cmdStr, "sizeof botstate", 15) == 0) {
+					printf("CMD result: botstate is %i bytes\r\n", sizeof(botstate));
+
+				// Nav commands
 				} else if(strncmp(cmdStr, "navmode", 7) == 0){
 					int index = 0;
     				int waypoint_index;
@@ -283,8 +287,8 @@ int main(void) {
 						if(strncmp(cmdStr, "waypoint ", 9) == 0){
 							waypoint_complete = false;
 							struct POSE newPose;
-							char xStr[2] = {cmdStr[9],  cmdStr[10]};
-							char yStr[2] = {cmdStr[12], cmdStr[13]};
+							char xStr[2] = {cmdStr[9],  cmdStr[10], cmdStr[11], cmdStr[12]};
+							char yStr[2] = {cmdStr[13], cmdStr[14], cmdStr[15], cmdStr[16]};
 							double x = atof(&xStr);
 							double y = atof(&yStr);
 							newPose.x = 	x;
