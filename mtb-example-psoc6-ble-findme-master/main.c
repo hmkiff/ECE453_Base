@@ -60,9 +60,7 @@
 
 // Device enables
 // SPI device enables
-#define ENABLE_SPI 0
-#define ENABLE_IMU 0
-#define ENABLE_EEPROM 0
+#define ENABLE_SPI 1
 // I2C device enables
 #define ENABLE_I2C 1
 // PWM device enables
@@ -129,30 +127,16 @@ int main(void) {
 		//ir_boot();
 	}
 
-	if (ENABLE_SPI) {
+	#if ENABLE_SPI
 		printf("* -- Initializing SPI Bus\n\r");
-		cy_rslt_t rslt = spi_init();
-		if (rslt == CY_RSLT_SUCCESS) {
-			if (ENABLE_EEPROM) {
-				if (eeprom_cs_init() == CY_RSLT_SUCCESS) {
-					if(eeprom_test() != CY_RSLT_SUCCESS) {
-						// Something is wrong wit the EEPROM
-						while(1){};
-					}
-				}
-			}
-			if (ENABLE_IMU) {
-				cy_rslt_t rslt = imu_cs_init();
-				if (rslt != CY_RSLT_SUCCESS) {
-					print_result(rslt);
-					return -1;
-				}
+		if (spi_init() == CY_RSLT_SUCCESS) {
+			if (imu_cs_init() != CY_RSLT_SUCCESS) {
+				printf("Error: Failed to initialize IMU chip select\n\r");
 			}
 		} else {
-			print_result(rslt);
-			return -1;
+			printf("Error: Failed to initialize SPI\n\r");
 		}
-	}
+	#endif
 
 	#if ENABLE_MOTOR
 		printf("* -- Initializing Motor Functions\n\r");
@@ -182,6 +166,8 @@ int main(void) {
 				} else {
 					strcpy(cmdStr, pcInputString);
 				}
+
+				// IR test commands
 				if (strncmp(cmdStr, "IR test", 7) == 0) {
 					char ch_num_str = cmdStr[8];
 					int ch_num = atoi(&ch_num_str);
@@ -202,6 +188,8 @@ int main(void) {
 					set_servo_angle(us_angle);
 				} else if (strncmp(cmdStr, "IR reboot", 9) == 0) {
 					ir_boot();
+				
+				// Servo test commands
 				}  else if (strncmp(cmdStr, "servo ", 6) == 0) {
 					int servo_angle = atoi(&cmdStr[6]);
 					printf("CMD result: Setting servo angle to %d\r\n", servo_angle);
@@ -213,8 +201,10 @@ int main(void) {
 					if(width < 500 || width > 2500){
 						printf("CMD warning: Servo angle was out-of-bounds and rectified to 0 or 180\r\n");
 					}
+
+				// US test commands
 				} else if (strncmp(cmdStr, "distance ", 9) == 0) {
-			  		//int servo_angle = atoi(&pcInputString[9]);
+			  		//int servo_angle = atoi(&cmdStr[9]);
 			  		printf("CMD result: Read Distance measurements.\r\n");
 			  		// uint32_t echodist1;
 			  		// uint32_t echodist2;
@@ -223,7 +213,10 @@ int main(void) {
 			  	} else if (strncmp(cmdStr, "locate", 6) == 0) {
 			  		printf("CMD result: Locating Object (if present).\r\n");
 			  		ultrasonic_locate_object();
-			  	} else if (strncmp(cmdStr, "motors ", 7) == 0){
+			  	
+				// Motors test commands
+				}
+				else if (strncmp(cmdStr, "motors ", 7) == 0){
 			  		char sig_str[2];
 			  		sig_str[0] = cmdStr[7];
 			  		sig_str[1] = cmdStr[8];
@@ -238,16 +231,15 @@ int main(void) {
 			  		int duty = atoi(&cmdStr[9]);
 					DriveBot(sig_str, duty);
 				} else if (strncmp(cmdStr, "test_motor ", 11) == 0){
-			  		char name = cmdStr[11];
-			  		int signal = atoi(&cmdStr[12]);
-					singleDrive(name, signal); 
-				} else if (strncmp(cmdStr, "IMU ", 4) == 0) {
+					char sig_str[2];
+			  		sig_str[0] = cmdStr[11];
+			  		int signal = atoi(cmdStr[12]);
+					singleDrive(sig_str[0], signal); 
+
+				// IMU test commands
+				} else if (strncmp(cmdStr, "IMU read", 8) == 0) {
 					if (ENABLE_SPI) {
-						if (ENABLE_IMU) {
-							// IMU read here
-						} else {
-							printf("CMD fail: IMU not enabled.\r\n");
-						}
+						imu_orientation();
 					} else {
 						printf("CMD fail: SPI not enabled.\r\n");
 					}
@@ -261,7 +253,39 @@ int main(void) {
 					printf("CMD result: Joining BT chain\r\n");
 					ble_chain_join();
 					swarm_main();
+				} else if(strncmp(cmdStr, "navmode", 7) == 0){
+					int index = 0;
+    				int waypoint_index;
+    				int updateDelay = 100;  // 100 ms 10Hz
+    				while(!waypoint_complete){
+    				    waypoint_index = (index % QLENGTH);
+    				    // target_pose = newPose();
+    				    // IMU_read();
+    				    createWaypointPath(estimated_pose);
+    				    path_follow(estimated_pose);
+    				    if(waypoint_complete){
+    				        index++;
+    				    }
 
+    				    cyhal_system_delay_ms(updateDelay);
+						cInputIndex = 0;
+						ALERT_CONSOLE_RX = false;
+						ALERT_BT_RX = false;
+						if(strncmp(cmdStr, "waypoint ", 9) == 0){
+							waypoint_complete = false;
+							struct POSE newPose;
+							char xStr[2] = {cmdStr[9],  cmdStr[10]};
+							char yStr[2] = {cmdStr[12], cmdStr[13]};
+							double x = atof(&xStr);
+							double y = atof(&yStr);
+							newPose.x = 	x;
+							newPose.y = 	y;
+							newPose.theta =	0;
+							waypoints[waypoint_index+1] = newPose;
+						}
+    				}
+
+				// Command fail
 				} else {
 					printf("CMD fail: command not recognized.\r\n");
 				}
