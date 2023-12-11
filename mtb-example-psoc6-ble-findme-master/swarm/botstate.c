@@ -2,6 +2,29 @@
 
 void print_botstate(botstate state) {
 
+    printf("------------\r\n");
+    printf("Current pose\r\n");
+    printf("------------\r\n");
+
+    printf("- Bot pose theta: %f\r\n", state.bot_pose.theta);
+    printf("- Bot pose x: %f\r\n", state.bot_pose.x);
+    printf("- Bot pose y: %f\r\n", state.bot_pose.y);
+
+    printf("----------------\r\n");
+    printf("Destination pose\r\n");
+    printf("----------------\r\n");
+
+    printf("- Bot pose theta: %f\r\n", state.current_target.theta);
+    printf("- Bot pose x: %f\r\n", state.current_target.x);
+    printf("- Bot pose y: %f\r\n", state.current_target.y);
+
+    printf("----------------\r\n");
+    printf("Closest obstacle\r\n");
+    printf("----------------\r\n");
+
+    printf("- Obstacle x: %f\r\n", state.closest_obstacle.x);
+    printf("- Obstacle y: %f\r\n", state.closest_obstacle.y);
+
     printf("--\r\n");
     printf("IR\r\n");
     printf("--\r\n");
@@ -15,14 +38,6 @@ void print_botstate(botstate state) {
         printf("\t- Status: %i\r\n", this_ir_data.RangeData->RangeStatus);
     }
 
-    printf("---\r\n");
-    printf("IMU\r\n");
-    printf("---\r\n");
-
-    // printf("- Roll: %f rad\r\n", state.imu_roll_rad);
-    // printf("- Pitch: %f rad\r\n", state.imu_pitch_rad);
-    // printf("- Yaw: %f rad\r\n", state.imu_yaw_rad);
-    
     printf("----------\r\n");
     printf("Ultrasonic\r\n");
     printf("----------\r\n");
