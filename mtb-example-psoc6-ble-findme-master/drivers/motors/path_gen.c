@@ -6,6 +6,7 @@
 // =============================================================================
 
 #include "path_gen.h"
+#include "imu.h"
 
 struct PATHSPEC path_queue[QLENGTH];
 int pathlength; // length of planned path

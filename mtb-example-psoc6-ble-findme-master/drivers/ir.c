@@ -89,8 +89,10 @@ void ir_read_until_valid(int dev_num, int max, bool verbose) {
     int count = 1;
     uint8_t status = 255;
     while ((status != 0) && (count < max)) {
-        printf("IR Info: Read IR %i until valid try %i", dev_num, count);
-        status = ir_read(dev_num, 1, verbose);
+        if (verbose) {
+            printf("IR Info: Read IR %i until valid try %i\r\n", dev_num, count);
+        }
+        status = ir_read(dev_num, 2, verbose);
         count++;
     }
 }
