@@ -73,6 +73,17 @@ cy_stc_ble_gatts_char_val_read_req_t *read_req_param;
 volatile bool ALERT_BT_RX = 0;
 char btInputString[BT_MESSAGE_MAX_LEN];
 
+#ifndef NUM_BOTS
+#define NUM_BOTS 4
+#endif 
+
+uint8_t bot_0_addr[CY_BLE_BD_ADDR_SIZE] = {157, 16, 38, 80, 160, 0};
+uint8_t bot_1_addr[CY_BLE_BD_ADDR_SIZE] = {156, 19, 38, 80, 160, 0};
+uint8_t bot_2_addr[CY_BLE_BD_ADDR_SIZE] = {59, 24, 38, 80, 160, 0};
+uint8_t bot_3_addr[CY_BLE_BD_ADDR_SIZE] = {181, 16, 38, 80, 160, 0};
+uint8_t* addr_ptrs[NUM_BOTS] = {bot_0_addr, bot_1_addr, bot_2_addr, bot_3_addr};
+uint8_t conn_bot_handle = 0;
+
 /*******************************************************************************
 * Function Prototypes
 ********************************************************************************/
@@ -80,10 +91,9 @@ static void ble_init(void);
 static void bless_interrupt_handler(void);
 static void stack_event_handler(uint32 event, void* eventParam);
 static void ble_start_advertisement(void);
-static void wakeup_timer_init(void);
-static void wakeup_timer_interrupt_handler(void *handler_arg, cyhal_lptimer_event_t event);
 static void ble_ias_callback(uint32 event, void *eventParam);
-static void enter_low_power_mode(void);
+static void ble_chain_join_connect(uint8_t* addr);
+static bool addr_is_bot(uint8_t* addr);
 
 
 /*******************************************************************************
@@ -98,13 +108,9 @@ void ble_findme_init(void)
     /* Configure BLE */
     ble_init();
 
-    /* Configure deep sleep wakeup timer */
-    wakeup_timer_init();
-
     /* Enable global interrupts */
     __enable_irq();
 }
-
 
 /*******************************************************************************
 * Function Name: ble_findme_process
@@ -114,12 +120,7 @@ void ble_findme_init(void)
 *  low power mode as required.
 *
 *******************************************************************************/
-void ble_findme_process(void)
-{
-    /* Enter low power mode. The call to enter_low_power_mode also causes the
-     * device to enter hibernate mode if the BLE stack is shutdown.
-     */
-    enter_low_power_mode();
+void ble_findme_process(void) {
 
     /* Cy_BLE_ProcessEvents() allows the BLE stack to process pending events */
     Cy_BLE_ProcessEvents();
@@ -140,30 +141,6 @@ void ble_findme_process(void)
         else
         {
             cyhal_gpio_write((cyhal_gpio_t)ECE453_USR_LED, CYBSP_LED_STATE_OFF);
-        }
-
-        /* Update CYBSP_USER_LED2 to indicate current alert level */
-        switch(alert_level)
-        {
-            case CY_BLE_NO_ALERT:
-            {
-                //cyhal_gpio_write((cyhal_gpio_t)CYBSP_USER_LED2, CYBSP_LED_STATE_OFF);
-                break;
-            }
-            case CY_BLE_MILD_ALERT:
-            {
-                //cyhal_gpio_toggle((cyhal_gpio_t)CYBSP_USER_LED2);
-                break;
-            }
-            case CY_BLE_HIGH_ALERT:
-            {
-                //cyhal_gpio_write((cyhal_gpio_t)CYBSP_USER_LED2, CYBSP_LED_STATE_ON);
-                break;
-            }
-            default:
-            {
-                break;
-            }
         }
     }
 }
@@ -252,26 +229,23 @@ static void stack_event_handler(uint32_t event, void* eventParam)
         }
 
         /* This event is received when there is a timeout */
-        case CY_BLE_EVT_TIMEOUT:
-        {
+        case CY_BLE_EVT_TIMEOUT: {
+
             /* Reason for Timeout */
             cy_en_ble_to_reason_code_t reason_code =
                 ((cy_stc_ble_timeout_param_t*)eventParam)->reasonCode;
 
-            switch(reason_code)
-            {
-                case CY_BLE_GAP_ADV_TO:
-                {
+            switch (reason_code) {
+                case CY_BLE_GAP_ADV_TO: {
                     printf("[INFO] : Advertisement timeout event \r\n");
                     break;
-                }
-                case CY_BLE_GATT_RSP_TO:
-                {
+                } case CY_BLE_GAP_SCAN_TO: {
+                    printf("[INFO] : Scan timeout event \r\n");
+                    break;
+                } case CY_BLE_GATT_RSP_TO: {
                     printf("[INFO] : GATT response timeout\r\n");
                     break;
-                }
-                default:
-                {
+                } default: {
                     printf("[INFO] : BLE timeout event\r\n");
                     break;
                 }
@@ -279,85 +253,86 @@ static void stack_event_handler(uint32_t event, void* eventParam)
             break;
         }
 
-        /* This event indicates completion of Set LE event mask */
-        case CY_BLE_EVT_LE_SET_EVENT_MASK_COMPLETE:
-        {
-            printf("[INFO] : Set LE mask event mask command completed\r\n");
-            break;
-        }
-
-        /* This event indicates set device address command completed */
-        case CY_BLE_EVT_SET_DEVICE_ADDR_COMPLETE:
-        {
-            printf("[INFO] : Set device address command has completed \r\n");
-            break;
-        }
-
-        /* This event indicates set Tx Power command completed */
-        case CY_BLE_EVT_SET_TX_PWR_COMPLETE:
-        {
-            printf("[INFO] : Set Tx power command completed\r\n");
-            break;
-        }
-
-        /* This event indicates BLE Stack Shutdown is completed */
-        case CY_BLE_EVT_STACK_SHUTDOWN_COMPLETE:
-        {
-            printf("[INFO] : BLE shutdown complete\r\n");
-            break;
-        }
-
-
         /**********************************************************************
          * GAP events
          *********************************************************************/
+        
+        case CY_BLE_EVT_GAPC_SCAN_START_STOP: {
+            // TODO Might be nice to know which
+            printf("BT Chain Info: Scan start or stop occurred\r\n");
+        }
+
+        case CY_BLE_EVT_GAPC_SCAN_PROGRESS_RESULT: {
+            cy_stc_ble_gapc_adv_report_param_t* param = 
+                (cy_stc_ble_gapc_adv_report_param_t*) eventParam;
+
+            // Is it a bot?
+            if (addr_is_bot(param->peerBdAddr)) {
+                
+                // Report the found bot
+                printf("BT Chain Info: Found bot at ");
+                for (int j = 0; j < CY_BLE_BD_ADDR_SIZE; j++) {
+                    printf("%i", param->peerBdAddr[j]);
+                    if (j < CY_BLE_BD_ADDR_SIZE) {
+                        printf(":");
+                    }
+                }
+                printf(", joining...\r\n");
+
+                // Connect
+                ble_chain_join_connect(param->peerBdAddr);
+            }
+        }
 
         /* This event is generated at the GAP Peripheral end after connection
          * is completed with peer Central device
          */
-        case CY_BLE_EVT_GAP_DEVICE_CONNECTED:
-        {
-            printf("[INFO] : GAP device connected \r\n");
-            break;
-        }
-        /* This event is triggered instead of 'CY_BLE_EVT_GAP_DEVICE_CONNECTED',
-         * if Link Layer Privacy is enabled in component customizer
-         */
-        case CY_BLE_EVT_GAP_ENHANCE_CONN_COMPLETE:
-        {
-            printf("[INFO] : GAP enhanced connection complete \r\n");
+        case CY_BLE_EVT_GAP_DEVICE_CONNECTED: {
+            cy_stc_ble_gap_connected_param_t* param = 
+                (cy_stc_ble_gap_connected_param_t*) eventParam;
+            
+            bool is_bot = addr_is_bot(param->peerAddr);
+            if (is_bot && (param->status == 0)) {
+                printf("BT Chain Info: Bot GAP device connected \r\n");
+                conn_bot_handle = param->bdHandle;
+            } else if (is_bot){
+                printf("BT Chain Error: Bot GAP connection failed with status %i\r\n", param->status);
+            }
             break;
         }
 
         /* This event is generated when disconnected from remote device or
          * failed to establish connection
          */
-        case CY_BLE_EVT_GAP_DEVICE_DISCONNECTED:
-        {
-            if(CY_BLE_CONN_STATE_DISCONNECTED ==
-               Cy_BLE_GetConnectionState(app_conn_handle))
-            {
-                printf("[INFO] : GAP device disconnected\r\n");
-                alert_level = CY_BLE_NO_ALERT;
+        case CY_BLE_EVT_GAP_DEVICE_DISCONNECTED: {
+            cy_stc_ble_gap_disconnect_param_t* param = 
+                (cy_stc_ble_gap_disconnect_param_t*) eventParam;
+
+            if (CY_BLE_CONN_STATE_DISCONNECTED ==
+                Cy_BLE_GetConnectionState(app_conn_handle)) {
+                if (conn_bot_handle == param->bdHandle) {
+                    printf("BT Chain Info : Bot GAP device disconnected \r\n");
+                } else {
+                    //printf("BT Chain Info : Non-bot GAP device disconnected \r\n");
+                }
                 ble_start_advertisement();
             }
             break;
         }
 
+        case CY_BLE_EVT_GAP_CREATE_CONN_CANCEL_COMPLETE: {
+            printf("[INFO] : GAP Connection canceled, retrying...\r\n");
+            ble_chain_join();
+        }
+
         /* This event indicates that the GAP Peripheral device has
          * started/stopped advertising
          */
-        case CY_BLE_EVT_GAPP_ADVERTISEMENT_START_STOP:
-        {
-            if(CY_BLE_ADV_STATE_ADVERTISING == Cy_BLE_GetAdvertisementState())
-            {
+        case CY_BLE_EVT_GAPP_ADVERTISEMENT_START_STOP: {
+            if (CY_BLE_ADV_STATE_ADVERTISING == Cy_BLE_GetAdvertisementState()) {
                 printf("[INFO] : BLE advertisement started\r\n");
-            }
-            else
-            {
+            } else {
                 printf("[INFO] : BLE advertisement stopped\r\n");
-
-                Cy_BLE_Disable();
             }
             break;
         }
@@ -398,28 +373,24 @@ static void stack_event_handler(uint32_t event, void* eventParam)
             printf("[INFO] : GATT read characteristic request received \r\n");
             read_req_param = (cy_stc_ble_gatts_char_val_read_req_t *)eventParam;
 
+            /*
             if (CY_BLE_BUTTONS_USR_BTN_CHAR_HANDLE == read_req_param->attrHandle) {
             	CY_BLE_GATT_DB_ATTR_SET_GEN_VALUE(CY_BLE_BUTTONS_USR_BTN_CHAR_HANDLE,&BTN_COUNT,1);
 
                 printf("[INFO] : BTN_COUNT %d\r\n", BTN_COUNT);
             }
+            */
 
             break;
         }
         /* ECE453 Read Characteristic END*/
 
         /* ECE453 Write Characteristic START*/
-        case CY_BLE_EVT_GATTS_WRITE_CMD_REQ:
-		{
+        case CY_BLE_EVT_GATTS_WRITE_CMD_REQ: {
             printf("[INFO] : GATT write characteristic request received \r\n");
 			write_req_param = (cy_stc_ble_gatt_write_param_t*)eventParam;
 
-			if( CY_BLE_LEDS_USR_LED_CHAR_HANDLE == write_req_param->handleValPair.attrHandle)
-			{
-
-				printf("[INFO] : GATT write USR_LED characteristic with value: 0x%x\r\n", write_req_param->handleValPair.value.val[0]);
-
-			} else if (CY_BLE_CMD_USR_CMD_CHAR_HANDLE == write_req_param->handleValPair.attrHandle) {
+            if (CY_BLE_CMD_USR_CMD_CHAR_HANDLE == write_req_param->handleValPair.attrHandle) {
                 strcpy(btInputString, write_req_param->handleValPair.value.val);
                 for (int i = 0; i < BT_MESSAGE_MAX_LEN; i++) {
                     write_req_param->handleValPair.value.val[i] = '\0';
@@ -432,32 +403,7 @@ static void stack_event_handler(uint32_t event, void* eventParam)
             }
 			break;
 		}
-        /* Auth issues */
-        case CY_BLE_EVT_GAP_AUTH_REQ: {
-            printf("[INFO] : BLE Auth Requested\r\n");
-            cy_stc_ble_gap_auth_info_t sec;
-            cy_en_ble_gap_sec_level_t seclvl = CY_BLE_GAP_SEC_MODE_1 | CY_BLE_GAP_SEC_LEVEL_1;
-            sec.security = seclvl;
-            sec.ekeySize = 0;
-            sec.authErr = 0;
-            sec.bonding = CY_BLE_GAP_BONDING;
-            sec.pairingProperties = 0;
-            sec.bdHandle = 0;
-            Cy_BLE_GAPP_AuthReqReply(&sec);
-            if (sec.authErr != CY_BLE_GAP_AUTH_ERROR_NONE) {
-                printf("[INFO] : Auth error %x\r\n", sec.authErr);
-            } else {
-                printf("[INFO] : Auth success\r\n");
-            }
-            return;
-        }
-        case CY_BLE_EVT_GAP_AUTH_FAILED: {
-            printf("[INFO] : BLE Auth fail\r\n");
-            return;
-        }
-        /* ECE453 Write Characteristic END*/
-        default:
-        {
+        default: {
             printf("[INFO] : BLE Event 0x%lX\r\n", (unsigned long) event);
         }
     }
@@ -516,80 +462,67 @@ static void ble_start_advertisement(void)
     }
 }
 
+// Bot chain -----------------------------------------------------------------
 
-/*******************************************************************************
-* Function Name: wakeup_timer_interrupt_handler
-********************************************************************************
-* Summary:
-*  wakeup_timer interrupt handler.
-*
-* Parameters:
-*  void *handler_arg (unused)
-*  cyhal_lptimer_irq_event_t event (unused)
-*
-*******************************************************************************/
-void wakeup_timer_interrupt_handler(void *handler_arg, cyhal_lptimer_event_t event)
-{
-    /* Set the interrupt flag */
-    wakeup_intr_flag = true;
-
-    /* Reload the timer to get periodic interrupt */
-    cyhal_lptimer_reload(&wakeup_timer);
-    cyhal_lptimer_set_match(&wakeup_timer, WAKEUP_TIMER_MATCH_VALUE);
-}
-
-
-/*******************************************************************************
-* Function Name: wakeup_timer_init
-********************************************************************************
-* Summary:
-*  Initialize deep sleep wakeup timer for generating interrupt.
-*
-*******************************************************************************/
-static void wakeup_timer_init(void)
-{
-    cyhal_lptimer_init(&wakeup_timer);
-    cyhal_lptimer_set_match(&wakeup_timer, WAKEUP_TIMER_MATCH_VALUE);
-    cyhal_lptimer_reload(&wakeup_timer);
-    cyhal_lptimer_register_callback(&wakeup_timer, wakeup_timer_interrupt_handler, NULL);
-    cyhal_lptimer_enable_event(&wakeup_timer, CYHAL_LPTIMER_COMPARE_MATCH,
-                               WAKEUP_INTR_PRIORITY, true);
-}
-
-
-/*******************************************************************************
-* Function Name: enter_low_power_mode
-********************************************************************************
-* Summary:
-*  Configures the device to enter low power mode.
-*
-*  The function configures the device to enter deep sleep - whenever the
-*  BLE is idle and the UART transmission/reception is not happening.
-*
-*  In case if BLE is  turned off, the function configures the device to
-*  enter hibernate mode.
-*
-*******************************************************************************/
-static void enter_low_power_mode(void)
-{
-    /* Enter hibernate mode if BLE is turned off  */
-    if(CY_BLE_STATE_STOPPED == Cy_BLE_GetState())
-    {
-        printf("[INFO] : Entering hibernate mode\r\n");
-
-        /* Turn of user LEDs */
-        cyhal_gpio_write((cyhal_gpio_t)ECE453_USR_LED, CYBSP_LED_STATE_OFF);
-        //cyhal_gpio_write((cyhal_gpio_t)CYBSP_USER_LED2, CYBSP_LED_STATE_OFF);
-
-        /* Wait until UART transfer complete  */
-        while(1UL == cyhal_uart_is_tx_active(&cy_retarget_io_uart_obj));
-        cyhal_syspm_hibernate(CYHAL_SYSPM_HIBERNATE_PINB_LOW);
+void ble_chain_start() {
+    // State address for input into next bot to join the chain
+    printf("BT Chain Info: Address is ");
+    for (int i = 0; i < CY_BLE_BD_ADDR_SIZE; i++) {
+        printf("%i:", cy_ble_configPtr->deviceAddress->bdAddr[i]);
     }
-    else
-    {
-        cyhal_syspm_deepsleep();
+    printf("\r\n");
+}
+
+void ble_chain_join() {
+    // Start scanning for a match
+    cy_en_ble_api_result_t result = Cy_BLE_GAPC_StartScan (
+        CY_BLE_SCANNING_FAST,
+        0
+    );
+    if (result != CY_BLE_SUCCESS) {
+        printf("BT Error: Couldn't start scan, reason:\r\n");
+        print_ble_result(result);
+        return;
     }
 }
 
+void ble_chain_join_connect(uint8_t* addr) {
+    cy_en_ble_api_result_t result = Cy_BLE_GAPC_StopScan();
+    if (result != CY_BLE_SUCCESS) {
+        printf("BT Chain Error: Couldn't stop scan, reason:\r\n");
+        print_ble_result(result);
+        return;
+    }
 
-/* [] END OF FILE */
+    cy_stc_ble_bd_addr_t address;
+    for (int i = 0; i < CY_BLE_BD_ADDR_SIZE; i++) {
+        address.bdAddr[i] = addr[i];
+    }
+    address.type = 0;
+    result = Cy_BLE_GAPC_ConnectDevice(
+        &address,
+        0
+    );
+    if (result != CY_BLE_SUCCESS) {
+        printf("BT Chain Error: Couldn't connect to bot, reason:\r\n");
+        print_ble_result(result);
+        return;
+    }
+}
+
+bool addr_is_bot(uint8_t* addr) {
+    for (int i = 0; i < NUM_BOTS; i++) {
+        bool found = true;
+        uint8_t* this_addr = addr_ptrs[i];
+        for (int j = 0; j < CY_BLE_BD_ADDR_SIZE; j++) {
+            if (addr[j] != this_addr[j]) {
+                found = false;
+                break;
+            }
+        }
+        if (found) {
+            return true;
+        }
+    }
+    return false;
+}
