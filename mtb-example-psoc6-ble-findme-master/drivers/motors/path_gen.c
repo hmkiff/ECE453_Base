@@ -15,6 +15,12 @@ struct POSE target_pose;
 struct POSE waypoints[QLENGTH];
 bool waypoint_complete = false;
 
+void getEstPose(){
+    estimated_pose.x =      lin_position[1];
+    estimated_pose.y =      lin_position[0];
+    estimated_pose.theta =  ang_position[1];
+}
+
 void waypointLoop(){
 // set up a rate basis to keep it on schedule.
     int index = 0;

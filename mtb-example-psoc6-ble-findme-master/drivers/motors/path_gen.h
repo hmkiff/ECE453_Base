@@ -37,6 +37,8 @@ void createWaypointPath(struct POSE est_pose);
 
 void waypointLoop();
 
+void getPose();
+
 struct POSE newPose();
 // loops the path_specs array.
 void pathLoop();
