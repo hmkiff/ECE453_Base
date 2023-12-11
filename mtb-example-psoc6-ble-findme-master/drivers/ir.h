@@ -10,6 +10,9 @@
 
 #define NUM_IR 4
 
+volatile extern VL53LX_Dev_t IR_dev[NUM_IR];
+volatile extern VL53LX_MultiRangingData_t multi_ir_data_store[NUM_IR];
+
 void ir_boot();
 void ir_io_test(int dev_num);
 void ir_read_all(int num_measurements, bool verbose);

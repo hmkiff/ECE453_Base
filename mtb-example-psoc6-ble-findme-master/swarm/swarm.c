@@ -13,6 +13,7 @@ float curve(float val, Curve type, float factor) {
     return val * factor;
 }
 
+/*
 botpos swarm(botstate bot[NUM_BOTS], int self_ind) {
     float x = bot[self_ind].pos.pos_x;
     float y = bot[self_ind].pos.pos_y;
@@ -49,3 +50,4 @@ botpos swarm(botstate bot[NUM_BOTS], int self_ind) {
     printf("Swarm: Bot %i will go to (%f, %f)\r\n", self_ind, x, y);
     return new_pos;
 }
+*/

@@ -1,3 +1,4 @@
+/*
 #include "simbot.h"
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -80,3 +81,4 @@ botstate simbot(botstate bot[NUM_BOTS], int simbot_ind, Environment env, SimbotB
 
     return bot[simbot_ind];
 }
+*/

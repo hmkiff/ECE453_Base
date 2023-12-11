@@ -1,6 +1,7 @@
 #include "ir.h"
 
-VL53LX_Dev_t IR_dev[NUM_IR];
+volatile VL53LX_Dev_t IR_dev[NUM_IR];
+volatile VL53LX_MultiRangingData_t multi_ir_data_store[NUM_IR];
 
 void ir_boot() {
     for (int i = 0; i < NUM_IR; i++) {
@@ -78,6 +79,12 @@ void ir_read_all(int num_measurements, bool verbose) {
     }
 }
 
+void ir_read_all_until_valid(int max, bool verbose) {
+    for (int i = 0; i < NUM_IR; i++) {
+        ir_read_until_valid(i, max, verbose);
+    }
+}
+
 void ir_read_until_valid(int dev_num, int max, bool verbose) {
     int count = 1;
     uint8_t status = 255;
@@ -119,6 +126,8 @@ uint8_t ir_read(int dev_num, int num_measurements, bool verbose) {
                     printf("IR Error: Failed to get measurement data, reason:\r\n");
                     print_IR_error(err);
                 } else {
+                    // Store in data array
+                    multi_ir_data_store[dev_num] = data;
                     if (verbose) {
                         printf("IR Info: Furthest object is %i mm away\r\n", data.RangeData->RangeMaxMilliMeter);
                         printf("IR Info: Closest object is %i mm away\r\n", data.RangeData->RangeMinMilliMeter);

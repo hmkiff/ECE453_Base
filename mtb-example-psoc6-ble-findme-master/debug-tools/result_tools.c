@@ -1,6 +1,8 @@
 #include "result_tools.h"
 #include "../drivers/console.h"
 #include "cyhal_general_types.h"
+#include "cyhal_dac.h"
+#include "cyhal_i2c.h"
 
 void print_result(cy_rslt_t result) {
     cy_rslt_decode_t decoded_rslt;
@@ -43,7 +45,17 @@ void print_result(cy_rslt_t result) {
         strcpy(codestr, "Unknown error");
     } else if (module == CYHAL_RSLT_MODULE_DAC) {
         strcpy(modulestr, "DAC");
-        strcpy(codestr, "Unknown error");
+        if (code == CYHAL_DAC_RSLT_BAD_ARGUMENT) {
+            strcpy(codestr, "Bad argument");
+        } else if (code == CYHAL_DAC_RSLT_FAILED_INIT) {
+            strcpy(codestr, "Failed init");
+        } else if (code == CYHAL_DAC_RSLT_BAD_REF_VOLTAGE) {
+            strcpy(codestr, "Bad reference voltage");
+        } else if (code == CYHAL_DAC_RSLT_BAD_OPAMP_INSTANCE) {
+            strcpy(codestr, "Bad opamp instance");
+        } else {
+            strcpy(codestr, "Unknown error");
+        }
     } else if (module == CYHAL_RSLT_MODULE_DMA) {
         strcpy(modulestr, "DMA");
         strcpy(codestr, "Unknown error");
@@ -221,6 +233,159 @@ void print_result(cy_rslt_t result) {
     printf("Raw code: %li Module code: %i Type code: %i Code: %i\n", 
         result, module, type, code);
         
+}
+
+void print_ble_result(cy_en_ble_api_result_t result) {
+    /** No Error occurred */
+    if (result == CY_BLE_SUCCESS) {
+        printf("BT Info: Success (check before calling print_ble_result)\r\n");
+    }
+
+    /** Flash operation in progress*/
+    else if (result == CY_BLE_INFO_FLASH_WRITE_IN_PROGRESS) {
+        printf("BT Error: Flash operation in progress\r\n");
+    }
+
+    /** At least one of the input parameters is invalid */
+    else if (result == CY_BLE_ERROR_INVALID_PARAMETER) {
+        printf("BT Error: Parameters incorrect\r\n");
+    }
+
+    /** Operation is not permitted */
+    else if (result == CY_BLE_ERROR_INVALID_OPERATION) {
+        printf("BT Error: Operation not permitted\r\n");
+    }
+
+    /** An internal error occurred in the BLE Stack */
+    else if (result == CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED) {
+        printf("BT Error: Memory allocation failure\r\n");
+    }
+
+    /** Insufficient resources to perform requested operation */
+    else if (result == CY_BLE_ERROR_INSUFFICIENT_RESOURCES) {
+        printf("BT Error: Insufficient resources\r\n");
+    }
+
+    /** OOB data not available */
+    else if (result == CY_BLE_ERROR_OOB_NOT_AVAILABLE) {
+        printf("BT Error: OOB data not available\r\n");
+    }
+
+    /** Connection is required to perform requested operation. Connection not
+       present */
+    else if (result == CY_BLE_ERROR_NO_CONNECTION) {
+        printf("BT Error: No connection\r\n");
+    }
+
+    /** No device entity to perform requested operation */
+    else if (result == CY_BLE_ERROR_NO_DEVICE_ENTITY) {
+        printf("BT Error: No device entity to perform operation\r\n");
+    }
+
+    /** Device cannot be added to the White List as it has already been added */
+    else if (result == CY_BLE_ERROR_DEVICE_ALREADY_EXISTS) {
+        printf("BT Error: Device has already been whitelisted\r\n");
+    }
+
+    /** Attempted repeat operation is not allowed */
+    else if (result == CY_BLE_ERROR_REPEATED_ATTEMPTS) {
+        printf("BT Error: Repeat attempts not allowed\r\n");
+    }
+
+    /** GAP role is incorrect */
+    else if (result == CY_BLE_ERROR_GAP_ROLE) {
+        printf("BT Error: Incorrect GAP role\r\n");
+    }
+
+    /** Security operation failed */
+    else if (result == CY_BLE_ERROR_SEC_FAILED) {
+        printf("BT Error: Security operation failed\r\n");
+    }
+
+    /** L2CAP PSM encoding is incorrect */
+    else if (result == CY_BLE_ERROR_L2CAP_PSM_WRONG_ENCODING) {
+        printf("BT Error: L2PCAP PSM encoding is incorrect\r\n");
+    }
+
+    /** L2CAP PSM has already been registered */
+    else if (result == CY_BLE_ERROR_L2CAP_PSM_ALREADY_REGISTERED) {
+        printf("BT Error: L2PCAP PSM has already been registered\r\n");
+    }
+
+    /** L2CAP PSM has not been registered */
+    else if (result == CY_BLE_ERROR_L2CAP_PSM_NOT_REGISTERED) {
+        printf("BT Error: L2PCAP PSM has not been registered\r\n");
+    }
+
+    /** L2CAP connection entity not found */
+    else if (result == CY_BLE_ERROR_L2CAP_CONNECTION_ENTITY_NOT_FOUND) {
+        printf("BT Error: L2PCAP connection entity not found\r\n");
+    }
+
+    /** Specified PSM is out of range */
+    else if (result == CY_BLE_ERROR_L2CAP_PSM_NOT_IN_RANGE) {
+        printf("BT Error: PSM is out of range\r\n");
+    }
+
+    /** Unsupported feature or parameter value */
+    else if (result == CY_BLE_ERROR_UNSUPPORTED_FEATURE_OR_PARAMETER_VALUE) {
+        printf("BT Error: Unsupported feature or parameter value\r\n");
+    }
+
+    /** Write to Flash is not permitted */
+    else if (result == CY_BLE_ERROR_FLASH_WRITE_NOT_PERMITED) {
+        printf("BT Error: Write to flash not permitted\r\n");
+    }
+
+    /** Error in Flash write */
+    else if (result == CY_BLE_ERROR_FLASH_WRITE) {
+        printf("BT Error: Error in flash wrtie\r\n");
+    }
+
+    /** MIC Authentication failure */
+    else if (result == CY_BLE_ERROR_MIC_AUTH_FAILED) {
+        printf("BT Error: MIC authentification failure\r\n");
+    }
+
+    /** Hardware Failure */
+    /** Possible reason - BLE ECO failed to start due to one of the below:
+     *   - LFCLK (WCO, PILO, ILO) not present
+     *   - Radio bus failure 
+     */
+    else if (result == CY_BLE_ERROR_HARDWARE_FAILURE) {
+        printf("BT Error: Hardware failure\r\n");
+    }
+
+    /**GATT DB error codes*/
+    /** Invalid attribute handle */
+    else if (result == CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE) {
+        printf("BT Error: GATT Invalid attribute handle\r\n");
+    }
+
+    /* Profile level API_RESULT codes */
+    /** Characteristic notifications disabled */
+    else if (result == CY_BLE_ERROR_NTF_DISABLED) {
+        printf("BT Error: Profile characteristic notifications disabled\r\n");
+    }
+
+    /** Characteristic indications disabled */
+    else if (result == CY_BLE_ERROR_IND_DISABLED) {
+        printf("BT Error: Profile characteristic indications disabled\r\n");
+    }
+
+    /** Controller Busy */
+    else if (result == CY_BLE_ERROR_CONTROLLER_BUSY) {
+        printf("BT Error: Controller is busy\r\n");
+    }
+
+    /** The state is not valid for current operation */
+    else if (result == CY_BLE_ERROR_INVALID_STATE) {
+        printf("BT Error: State is invalid for current operation\r\n");
+    }
+
+    else {
+        printf("BT Error: Unknown error\r\n");
+    }
 }
 
 void print_IR_error(VL53LX_Error error) {

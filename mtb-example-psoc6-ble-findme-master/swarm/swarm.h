@@ -28,6 +28,6 @@ typedef enum {
 #define COHESION_CURVE 1
 #define SEPARATION_FACTOR 1
 #define SEPARATION_CURVE 2
-botpos swarm(botstate bot[NUM_BOTS], int self_ind);
+//botpos swarm(botstate bot[NUM_BOTS], int self_ind);
 
 #endif

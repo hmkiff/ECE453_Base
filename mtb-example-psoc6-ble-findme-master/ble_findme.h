@@ -49,6 +49,11 @@
 #include "cy_retarget_io.h"
 #include "cybsp.h"
 #include "cycfg_ble.h"
+#include "cy_ble_gap.h"
+#include "cy_ble_event_handler.h"
+#include "cy_ble_stack.h"
+#include "cyhal_lptimer.h"
+#include "cyhal_syspm.h"
 #include "main.h"
 
 #define BT_MESSAGE_MAX_LEN   (100u)
@@ -62,6 +67,9 @@ extern volatile bool ALERT_BT_RX;
  *****************************************************************************/
 void ble_findme_init(void);
 void ble_findme_process(void);
+
+void ble_chain_start();
+void ble_chain_join();
 
 #endif  /* BLE_FIND_ME_H */
 

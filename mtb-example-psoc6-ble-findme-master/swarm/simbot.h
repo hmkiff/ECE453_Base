@@ -1,3 +1,5 @@
+/*
+Abandoned.
 #ifndef SIMBOT_H
 #define SIMBOT_H
 
@@ -5,6 +7,7 @@
 #include "botstate.h"
 #include "environment.h"
 #include "swarm.h"
+
 
 typedef struct {
     int sweep_us;
@@ -17,3 +20,4 @@ botstate simbot_init(botstate bot[NUM_BOTS], int simbot_ind, SimbotBehavior beha
 botstate simbot(botstate bot[NUM_BOTS], int simbot_ind, Environment env, SimbotBehavior behavior);
 
 #endif
+*/

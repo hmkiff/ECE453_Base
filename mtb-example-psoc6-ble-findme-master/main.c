@@ -58,14 +58,6 @@
 #define DEBUG_CONSOLE_MODE 1
 #define CMD_LENGTH (100u)
 
-#define SWARM_MODE 0
-
-// Simbot enables
-// Should this PSoC6 board fake sensor data?
-#define SIMBOT_HOST 0
-// If SIMBOT_HOST is 1, how many bots should be faked?
-#define NUM_SIMBOTS 3
-
 // Device enables
 // SPI device enables
 #define ENABLE_SPI 0
@@ -79,6 +71,37 @@
 
 // Bot state information
 botstate state[NUM_BOTS];
+
+void swarm_main() {
+
+	// Gather new sensor data into own botstate
+	botstate my_state = state[0];
+
+	// IR
+	ir_read_all_until_valid(5, false);
+	for (int i = 0; i < NUM_IR; i++) {
+		my_state.ir_data[i] = multi_ir_data_store[i];
+	}
+
+	// Aim ultrasonic at nearest ir
+
+	// US
+	my_state.us_echo1_cm = ultrasonic_get_object_distance(PIN_ECHO1);
+	my_state.us_echo2_cm = ultrasonic_get_object_distance(PIN_ECHO2);
+	my_state.servo_ang_rad = ultrasonic_angle;
+
+	// IMU
+
+	// Save, report
+	state[0] = my_state;
+	print_botstate(state);
+
+	// Collect other botstates over bt
+
+	// Pass botstates to swarm algorithm to get next position
+
+	// Move to position
+}
 
 int main(void) {
 
@@ -228,33 +251,27 @@ int main(void) {
 					} else {
 						printf("CMD fail: SPI not enabled.\r\n");
 					}
+
+				// BT chain commands
+				} else if (strncmp(cmdStr, "BT chain start", 14) == 0) {
+					printf("CMD result: Starting BT chain\r\n");
+					ble_chain_start();
+					swarm_main();
+				} else if (strncmp(cmdStr, "BT chain join", 13) == 0) {
+					printf("CMD result: Joining BT chain\r\n");
+					ble_chain_join();
+					swarm_main();
+
 				} else {
 					printf("CMD fail: command not recognized.\r\n");
 				}
+
 				cInputIndex = 0;
 				ALERT_CONSOLE_RX = false;
 				ALERT_BT_RX = false;
 			}
-		} else if (SIMBOT_HOST == 1) {
-			
-		} else if (SWARM_MODE == 1) {
-			// Swarm mode
-			// Sweep ultrasonic
-
-			// Gather new sensor data into own botstate
-			state[0].us_echo1_cm = ultrasonic_get_object_distance(PIN_ECHO1);
-			state[0].us_echo2_cm = ultrasonic_get_object_distance(PIN_ECHO2);
-			state[0].servo_ang_rad = 0;
-
-			// Collect other botstates over bt
-
-			// Pass botstates to swarm algorithm to get next position
-			botpos next_pos = swarm(state, 0);
-
-			// Move to position
 		}
-    }
-}
-
+	}
+};
 
 /* END OF FILE */
