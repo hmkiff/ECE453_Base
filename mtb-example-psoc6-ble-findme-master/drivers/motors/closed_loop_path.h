@@ -28,7 +28,7 @@
 // All you have when planning is a model - you never quite know the truth! 
 #define BODY_LENGTH
 #define WHL_DIAMETER
-#define WHL_RADIUS wheel_diameter/2.0
+#define WHL_RADIUS
 
 
 // Closed-loop controller parameters: get them from the ROS parameters imported from the YAML file. 
@@ -38,8 +38,9 @@
 #define ANGLE_FOCUS 0.0
 
 // initial situation is that the path is NOT complete.
-bool forward_only = true; 
-bool path_is_complete = false;
+extern bool forward_only;
+
+extern bool path_is_complete;
 
 
 extern struct PATHSPEC path_segment_spec;
@@ -49,6 +50,6 @@ void set_path_complete(bool msg_in);
 
 void update_path(struct PATHSPEC path_msg_in);
 
-void path_follow(struct POSE pose_msg_in);
+void path_follow(struct POSE * pose_msg_in);
 
 #endif

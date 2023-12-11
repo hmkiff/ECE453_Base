@@ -35,7 +35,7 @@ bool waypoint_complete = false;
 
 #endif
 
-void createWaypointPath(struct POSE est_pose);
+void createWaypointPath(struct POSE * est_pose);
 
 void waypointLoop();
 

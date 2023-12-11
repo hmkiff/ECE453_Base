@@ -20,6 +20,9 @@ struct ROBOT bug = {
     .right_wheel_angle = 0.0
 };
 
+double d_left_previous = 0;
+double d_right_previous = 0;
+
 // Create a rotation matrix to translate the robot frame to the world-frame
 struct MAT2 get_rotmat_body_to_world(){
         struct MAT2 rotmat_body_to_world = {.a=cos(bug.theta), .b=-sin(bug.theta), .c=sin(bug.theta), .d=cos(bug.theta)};
@@ -36,7 +39,7 @@ void set_wheel_speeds(double v_left, double v_right){
         drive_update();
 
         // Now compute the new robot velocities based on the new wheel_speeds. 
-        // put in Equations (i) and (ii) here based on bug.left_wheel_speed, bug.right_wheel_speed, and bug.wheel_width
+        // put in Equations (i) and (ii) here based on bug.left_wheel_speed, bug.right_wheel_speed, and bug.WHEEL_WIDTH
         double v_center_y_bf = (v_left + v_right)/2.0;
         struct VEC2D v_center_bf = {0.0, v_center_y_bf};
         double omega = (v_right - v_left)/WHEEL_WIDTH;
@@ -54,7 +57,7 @@ void set_wheel_speeds_from_robot_velocities(double forward_velocity, double angu
         // Kinematic Equations mapping desired robot speed and angular velocity
         // to left and right wheel speeds. 
         // Use the variables "forward_velocity" and "angular_velocity" that the function takes as input. 
-        // Use "bug.wheel_width" as the robot's parameter for wheel width. 
+        // Use "bug.WHEEL_WIDTH" as the robot's parameter for wheel width. 
         double left_wheel_speed  = forward_velocity - (angular_velocity*WHEEL_WIDTH/2);
         double right_wheel_speed = forward_velocity + (angular_velocity*WHEEL_WIDTH/2);
         set_wheel_speeds(left_wheel_speed, right_wheel_speed);
@@ -187,7 +190,6 @@ struct PATHSPEC specify_arc(float x0, float y0, float xf, float yf, float R, boo
     
     return specs;	
 }
-
 
 //  void drive_line(int distance_cm, float speed_mps){
 // 	int duty = speed_mps * MPStoDC;

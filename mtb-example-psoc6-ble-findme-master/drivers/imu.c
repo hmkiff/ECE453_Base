@@ -44,46 +44,41 @@ static void platform_init(void);
 /* Main Example --------------------------------------------------------------*/
 void imu_orientation(void) {
 
-  int16_t linear[3];
-  int16_t angles[3];
-
-  lsm6dsm_acceleration_raw_get(&dev_ctx, linear);
-  lsm6dsm_angular_rate_raw_get(&dev_ctx, angles);
-
-  // Convert to real units
-  float acceleration_scale = 4.0 / 32768.0;  // ±4 g range
-  float angular_rate_scale = 500.0 / 32768.0; // ±500 dps range
-
-  float ang_val[3];
-  float lin_val[3];
+    int16_t linear[3];
+    int16_t angles[3];
   
-  char direction[3]; 
-
-  //calculate position and velocity
-  float t_time = 1.0/208.0; //fixed time inmterval equal to date rate 
-
-
-  float ini_lin_velocity = 0.0;
-  float ini_lin_position = 0.0;
-  float lin_velocity[3];
-  float lin_position[3];
-
-  float ini_ang_position = 0.0;
-  float ang_position[3];
-  //float ang_velocity[3] = ang_val[3];
-  // Array to store direction strings
-  // linear[0] = linear[0] * full scale range
+    lsm6dsm_acceleration_raw_get(&dev_ctx, linear);
+    lsm6dsm_angular_rate_raw_get(&dev_ctx, angles);
+  
+    // Convert to real units
+    float acceleration_scale = 4.0 / 32768.0;  // ±4 g range
+    float angular_rate_scale = 500.0 / 32768.0; // ±500 dps range
+  
+    float ang_val[3];
+    float lin_val[3];
+    
+    char direction[3]; 
+  
+    //calculate position and velocity
+    float t_time = 1.0/208.0; //fixed time inmterval equal to date rate 
+  
+  
+    float ini_lin_velocity = 0.0;
+    float ini_lin_position = 0.0;
+    float lin_velocity[3];
+    float lin_position[3];
+  
+    float ini_ang_position = 0.0;
+    float ang_position[3];
+    //float ang_velocity[3] = ang_val[3];
+    // Array to store direction strings
+    // linear[0] = linear[0] * full scale range
     for (int i = 0; i < 3; ++i) {
-         ang_val[i] = angles[i] * angular_rate_scale;
-          ang_position[i] = ang_val[i] * t_time + ini_ang_position;
+        ang_val[i] = angles[i] * angular_rate_scale;
+        ang_position[i] = ang_val[i] * t_time + ini_ang_position;
         
-        
-        ini_ang_position = ang_position[i];
-
-
-
-        
-     }
+        ini_ang_position = ang_position[i];   
+    }
 
 
     for (int i = 0; i < 3; ++i) {
@@ -91,11 +86,8 @@ void imu_orientation(void) {
         lin_velocity [i] = 9.81 * lin_val[i] * t_time + ini_lin_velocity;
         lin_position[i] = (ini_lin_velocity * t_time) + (0.5 * 9.81 * lin_val[i] * t_time * t_time) + ini_lin_position;
 
-        
         ini_lin_position = lin_position[i];
         ini_lin_velocity = lin_velocity[i];
-
-
     }
 
     sprintf(tx_buffer, "Linear Velocity:\r\n"
@@ -108,19 +100,18 @@ void imu_orientation(void) {
                        lin_velocity[0], lin_velocity[1], lin_velocity[2],
                         ang_val[2]);
 
-printf("%s", tx_buffer);
+    printf("%s", tx_buffer);
 
-sprintf(tx_buffer, "Linear position:\r\n"
-                    "\tx: %.7f m\r\n"
-                    "\ty: %.7f m\r\n"
-                    "\tz: %.7f m\r\n"
-                    "Angular position:\r\n"
-                    
-                    "\tz: %.7f degrees\r\n",
-                    lin_position[0], lin_position[1], lin_position[2],
-                     ang_position[2]);
+    sprintf(tx_buffer, 
+            "Linear position:\r\n"
+            "\tx: %.7f m\r\n"
+            "\ty: %.7f m\r\n"
+            "\tz: %.7f m\r\n"
+            "Angular position:\r\n"
+            "\tz: %.7f degrees\r\n",
+            lin_position[0], lin_position[1], lin_position[2], ang_position[2]);
 
-printf("%s", tx_buffer);
+    printf("%s", tx_buffer);
 
 
 //     //check orientation by setting threshold

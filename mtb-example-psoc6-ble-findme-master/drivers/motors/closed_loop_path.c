@@ -12,16 +12,20 @@
 #include "closed_loop_path.h"
 
 // global variable to hold the path specs currently being tracked
-struct PATHSPEC path_segment_spec = {.x0=0.0, .y0=0.0, .theta0=0.0, .Radius=INFINITY, .Length=INFINITY};
+struct PATHSPEC path_segment_spec = {0.0, 0.0, 0.0, INFINITY, INFINITY};
     
 // global variables used in path following: 
 bool initialize_psi_world= true;
-struct POSE estimated_pose_previous = {.x=0.0, .y=0.0, .theta=0.0};
+struct POSE estimated_pose_previous = {0.0, 0.0, 0.0};
 double estimated_x_local_previous = 0.;
 double estimated_theta_local_previous= 0. ;
 double path_segment_curvature_previous = 0.;
 double estimated_psi_world_previous = 0. ;
 double estimated_segment_completion_fraction_previous = 0.;
+
+bool forward_only = true;
+
+bool path_is_complete = false;
 
 
 // =============================================================================
@@ -41,9 +45,9 @@ void update_path(struct PATHSPEC path_msg_in){
 // =============================================================================
 // // Function to update the path tracking control based on the robot's estimated position
 // =============================================================================
-void path_follow(struct POSE pose_msg_in){
+void path_follow(struct POSE * pose_msg_in){
     // First assign the incoming message
-    struct POSE estimated_pose = pose_msg_in;
+    struct POSE estimated_pose = * pose_msg_in;
     struct VEC2D pose_xy = {estimated_pose.x, estimated_pose.y};
 
     double estimated_y_local;
