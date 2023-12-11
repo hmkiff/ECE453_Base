@@ -193,7 +193,8 @@ void path_follow(struct POSE pose_msg_in){
     // Check if the overall path is complete 
     // If so, stop!    
     if(path_is_complete){
-        set_wheel_speeds(0.,0.) ;
+        set_wheel_speeds(0.,0.);
+        return;
     }   
      
     printf("Fraction of Segment Complete: %lf \r\n",estimated_segment_completion_fraction);
