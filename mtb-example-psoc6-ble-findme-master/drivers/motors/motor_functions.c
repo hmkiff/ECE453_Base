@@ -94,14 +94,23 @@ void set_wheel_direction(struct MOTOR *motor, int direction){
 }
 
 void set_motor_duty(struct MOTOR *motor, int duty){
-	motor->duty = duty;
+	int newDuty = duty;
+	if(duty > 100) {newDuty = 90;}
+	else if(duty < 0) { newDuty = 0;}
+	else{ newDuty = 0;}
+	motor->duty = newDuty;
 }
 
 void set_motor_speed_mps(struct MOTOR *motor, float speed){
 	printf("raw speed %f\r\n", speed);
 	set_wheel_direction(motor, signf(speed));
 	printf("Speed double: %f, Speed int: %d\r\n", (MPStoDC*fabsf(speed)), (int) (MPStoDC*fabsf(speed)));
-	motor->duty = (int) (MPStoDC*fabsf(speed));
+	int duty = MPStoDC*fabsf(speed);
+	int newDuty = duty;
+	if(duty > 100) {newDuty = 90;}
+	else if(duty < 0) { newDuty = 0;}
+	else{ newDuty = 0;}
+	motor->duty = (int) (newDuty);
 }
 
 void set_drive_direction(int direction){

@@ -191,26 +191,61 @@ struct PATHSPEC specify_arc(float x0, float y0, float xf, float yf, float R, boo
     return specs;	
 }
 
-//  void drive_line(int distance_cm, float speed_mps){
-// 	int duty = speed_mps * MPStoDC;
-// 	set_drive_direction(1);
-// 	set_drive_duty(duty);
-// 	drive_update();
-// 	cyhal_system_delay_ms((distance_cm*1000)/speed_mps);
-// 	set_drive_duty(0);
-// 	set_drive_direction(0);
-// 	drive_update();
-// 	printf("Line Complete\r\n");
-// }
+ void drive_line(int distance_cm, float speed_mps){
+	int duty = speed_mps * MPStoDC;
+	set_drive_direction(1);
+	set_drive_duty(duty);
+	drive_update();
+	cyhal_system_delay_ms((distance_cm*1000)/speed_mps);
+	set_drive_duty(0);
+	set_drive_direction(0);
+	drive_update();
+	printf("Line Complete\r\n");
+}
 
-// void drive_arc(float turn_radius, float speed_mps, int direction){
-// 	int duty = speed_mps * MPStoDC;
-// 	set_drive_direction(FORWARD);
-// 	int inner_rad = (turn_radius - (WHEEL_WIDTH/2));
-// 	int outer_rad = (turn_radius + (WHEEL_WIDTH/2));
-// 	int speed_left = 0;
-// 	int speed_right = 0;
-// 	set_motor_duty(&motorA, speed_left);
-// 	set_motor_duty(&motorB, speed_right);
-// 	drive_update();
-// }
+void drive_arc(float speed_mps, int direction){
+    float angle = 0;
+    if(direction < 0){
+        angle = M_PI/2;
+    } else if(direction > 0){
+        angle = -M_PI/2;
+    } else if(direction == 0){
+        angle = 0;
+    }
+    printf("angle: %f \r\n", angle);
+    float new_omega = fabsf(speed_mps)*signf(angle);
+    // COMPUTE wheel speeds using equations from lecture 
+    float radius = 0; // for a Pivot
+    float lft_whl_spd = new_omega*(radius-(WHEEL_WIDTH/2));
+    float rgt_whl_spd = new_omega*(radius+(WHEEL_WIDTH/2));
+    
+    // COMPUTE the duration (time in seconds) for which they should turn at these speeds.
+    float duration = angle/new_omega;
+    printf("Turn for %f seconds \r\n", duration);
+
+	set_wheel_speeds(lft_whl_spd, rgt_whl_spd);
+	drive_update();
+    cyhal_system_delay_ms(duration*2500);
+    set_wheel_speeds(0, 0);
+    drive_update();
+}
+
+
+void drive_angle(float speed_mps, int angle){
+    printf("angle: %f \r\n", DTR*angle);
+    float new_omega = fabsf(speed_mps)*signf(DTR*angle);
+    // COMPUTE wheel speeds using equations from lecture 
+    float radius = 0; // for a Pivot
+    float lft_whl_spd = new_omega*(radius-(WHEEL_WIDTH/2));
+    float rgt_whl_spd = new_omega*(radius+(WHEEL_WIDTH/2));
+    
+    // COMPUTE the duration (time in seconds) for which they should turn at these speeds.
+    float duration = angle/new_omega;
+    printf("Turn for %f seconds \r\n", duration);
+
+	set_wheel_speeds(lft_whl_spd, rgt_whl_spd);
+	drive_update();
+    cyhal_system_delay_ms(duration*2500);
+    set_wheel_speeds(0, 0);
+    drive_update();
+}

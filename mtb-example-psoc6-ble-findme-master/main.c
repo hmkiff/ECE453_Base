@@ -235,29 +235,45 @@ int main(void) {
 				// Motors test commands
 				}
 				else if (strncmp(cmdStr, "motors ", 7) == 0){
-			  		char sig_str[2];
-			  		sig_str[0] = cmdStr[7];
-			  		sig_str[1] = cmdStr[8];
-			  		int duty = atoi(&cmdStr[10]);
+			  		char sig_str[2] = {cmdStr[7], cmdStr[8]};
+					char dutyStr[3] = {cmdStr[10], cmdStr[11], cmdStr[12]};
+			  		int duty = atoi(&dutyStr);
 			  		DriveMotor(&motorA, sig_str, duty);
 					cyhal_system_delay_ms(1000);
 			  		DriveMotor(&motorB, sig_str, duty);
 			  	} else if (strncmp(cmdStr, "drive ", 6) == 0){
-			  		char sig_str[2];
-			  		sig_str[0] = cmdStr[6];
-			  		sig_str[1] = cmdStr[7];
-			  		int duty = atoi(&cmdStr[9]);
+					char sig_str[2] = {cmdStr[6], cmdStr[7]};
+					char dutyStr[3] = {cmdStr[9], cmdStr[10], cmdStr[11]};
+			  		int duty = atoi(&dutyStr);
+					printf("duty: %d \r\n", duty);
 					DriveBot(sig_str, duty);
+				} else if (strncmp(cmdStr, "turn ", 5) == 0){
+					int dir = atoi(&cmdStr[5]);
+					drive_arc(15, dir);
+				} else if (strncmp(cmdStr, "rotate ", 7) == 0){
+					int angle = atoi(&cmdStr[7]);
+					drive_arc(15, angle);
 				} else if (strncmp(cmdStr, "test_motor ", 11) == 0){
 					char sig_str[2];
 			  		sig_str[0] = cmdStr[11];
-			  		int signal = atoi(cmdStr[12]);
+			  		int signal = atoi(&cmdStr[12]);
 					singleDrive(sig_str[0], signal); 
 
 				// IMU test commands
 				} else if (strncmp(cmdStr, "IMU read", 8) == 0) {
 					if (ENABLE_SPI) {
 						imu_orientation();
+					} else {
+						printf("CMD fail: SPI not enabled.\r\n");
+					}
+				} else if (strncmp(cmdStr, "IMU cont", 8) == 0){
+					int count = 0;
+					if (ENABLE_SPI) {
+						while(count<20){
+							imu_orientation();
+							cyhal_system_delay_ms(30);
+							count++;
+						}
 					} else {
 						printf("CMD fail: SPI not enabled.\r\n");
 					}
@@ -280,9 +296,13 @@ int main(void) {
     				int waypoint_index;
     				int updateDelay = 100;  // 100 ms 10Hz
 					bool path_complete = false;
-					while(index < 5){
-						target_pose = square[index];
+					while(true){
+						printf("index: %d \r\n", index);
+						target_pose = square[waypoint_index];
+						waypoint_index = index % 5;
+						printf("estimating pose");
 						getEstPose();
+						printf("done estimating");
 						createWaypointPath(estimated_pose);
 						path_follow(estimated_pose);
 						if(waypoint_complete){
@@ -328,6 +348,6 @@ int main(void) {
 			}
 		}
 	}
-};
+}
 
 /* END OF FILE */

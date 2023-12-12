@@ -31,9 +31,14 @@
 
 #define IMU_CTRL3_C 0x76
 
+#define ANG_TOLERANCE 0.0040000
+#define LIN_TOLERANCE 0.0100000
+
 /* Extern variables ----------------------------------------------------------*/
 extern float ang_position[3];
 extern float lin_position[3];
+extern float ini_ang_position[3];
+extern float ini_lin_position[3];
 
 /*
  *   WARNING:

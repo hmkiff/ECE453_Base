@@ -34,6 +34,8 @@ static stmdev_ctx_t dev_ctx;
 /* Global Variables ----------------------------------------------------------*/
 float ang_position[3];
 float lin_position[3];
+float ini_ang_position[3] = {0.0, 0.0, 0.0};
+float ini_lin_position[3] = {0.0, 0.0, 0.0};
 
 /* Private functions ---------------------------------------------------------*/
 static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
@@ -62,44 +64,43 @@ void imu_orientation(void) {
     float angular_rate_scale = DTR * 500.0 / 32768.0; // ±500 dps range * degrees to radian conversion
   
     float ang_val[3];
+    printf("ang accel: z: %0.7f g \r\n", (angles[2]*angular_rate_scale));
     float lin_val[3];
-    
+    printf("lin accel: z: %0.7f g \r\n", (linear[2]*acceleration_scale));
     char direction[3]; 
-  
+
     //calculate position and velocity
     float t_time = 1.0/208.0; //fixed time interval equal to date rate 
   
-  
-    float ini_lin_velocity = 0.0;
-    float ini_lin_position = 0.0;
     float lin_velocity[3];
     
-  
-    float ini_ang_position = 0.0;
+    float ini_lin_velocity[3] = {0.0, 0.0, 0.0};
     
     //float ang_velocity[3] = ang_val[3];
     // Array to store direction strings
     // linear[0] = linear[0] * full scale range
     for (int i = 0; i < 3; i++) {
         ang_val[i] = angles[i] * angular_rate_scale;
-        ang_position[i] = ang_val[i] * t_time + ini_ang_position;
-        
-        ini_ang_position += ang_position[i];   
+        if(fabsf(ang_val[i]) > ANG_TOLERANCE){
+            ang_position[i] =  ((18.6 * ang_val[i] * t_time) + ini_ang_position[i]);
+
+            ini_ang_position[i] = ang_position[i];
+        }  
     }
 
-
+    float delta_pos = 0;
     for (int i = 0; i < 3; i++) {
         lin_val[i] = linear[i] * acceleration_scale;
-        if(i == 2){
-            lin_velocity [i] = (9.81 * lin_val[i] * t_time) + ini_lin_velocity;
-            lin_position[i] = (ini_lin_velocity * t_time) + (0.5 * 9.81 * lin_val[i] * t_time * t_time) + ini_lin_position;
+        if(fabsf(lin_val[i]) > LIN_TOLERANCE){
+            lin_velocity [i] = (9.81 * lin_val[i] * t_time) + ini_lin_velocity[i];
+            delta_pos = (lin_velocity[i] * t_time) + (0.5 * 9.81 * lin_val[i] * t_time * t_time);
+            if(delta_pos > 0.0001){
+              lin_position[i] = delta_pos + ini_lin_position[i];
+            } else{
+              lin_position[i] = ini_lin_position[i];
+            }
+            ini_lin_position[i] = lin_position[i];
         }
-        lin_velocity [i] = (lin_val[i] * t_time) + ini_lin_velocity;
-        lin_position[i] = (ini_lin_velocity * t_time) + (0.5 * lin_val[i] * t_time * t_time) + ini_lin_position;
-
-
-        ini_lin_position += lin_position[i];
-        ini_lin_velocity = lin_velocity[i];
     }
 
     // sprintf(tx_buffer, "Linear Velocity:\r\n"
@@ -114,16 +115,20 @@ void imu_orientation(void) {
 
     // printf("%s", tx_buffer);
 
-    sprintf(tx_buffer, 
-            "Linear position:\r\n"
-            "\tx: %.7f m\r\n"
-            "\ty: %.7f m\r\n"
-            "\tz: %.7f m\r\n"
-            "Angular position:\r\n"
-            "\tz: %.7f degrees\r\n",
-            lin_position[0], lin_position[1], lin_position[2], ang_position[2]);
+    // sprintf(tx_buffer, 
+    //         "Linear position:\r\n"
+    //         "\tx: %.7f m\r\n"
+    //         "\ty: %.7f m\r\n"
+    //         "\tz: %.7f m\r\n"
+    //         "Angular position:\r\n"
+    //         "\tz: %.7f radians\r\n",
+    //         lin_position[1], lin_position[0], lin_position[2], ang_position[2]);
 
-    printf("%s", tx_buffer);
+    // printf("%s", tx_buffer);
+    printf("Linear accel: \r\n x: %.7f g, y: %.7f g, z: %0.7f g \r\nAngular accel: z: %.7f rps\r\n",
+      lin_val[1], lin_val[0], lin_val[2], ang_val[2]);
+    printf("Linear position: \r\n x: %.7f m, y: %.7f m \r\nAngular position: \r\n z: %.7f radians\r\n",
+          lin_position[1], lin_position[0], ang_position[2]);
 
 
 //     //check orientation by setting threshold
