@@ -252,7 +252,7 @@ int main(void) {
 					drive_arc(15, dir);
 				} else if (strncmp(cmdStr, "rotate ", 7) == 0){
 					float angle = atof(&cmdStr[7]);
-					rotateBot(1.0, angle);
+					rotateBot(0.8, angle);
 				// } else if (strncmp(cmdStr, "test_motor ", 11) == 0){
 				// 	char sig_str[2];
 			  	// 	sig_str[0] = cmdStr[11];
@@ -260,8 +260,8 @@ int main(void) {
 				// 	singleDrive(sig_str[0], signal); 
 				} else if (strncmp(cmdStr, "line ", 5) == 0){
 					float distance = atof(&cmdStr[5]);
-					drive_line(distance, 1.0);
-					
+					drive_line(distance, 0.8);
+
 				// IMU test commands
 				} else if (strncmp(cmdStr, "IMU read", 8) == 0) {
 					if (ENABLE_SPI) {
