@@ -50,6 +50,7 @@
 #include "cybsp.h"
 #include "cyhal.h"
 #include "ble_findme.h"
+#include "cycfg_ble.h"
 #include "main.h"
 
 // Enables --------------------
@@ -67,6 +68,7 @@
 #define ENABLE_MOTOR 1
 #define ENABLE_ULTRASONIC 1
 
+#define STATE_LEN_BYTES 440
 // Shape Default Waypoints
 // struct POSE square[5] = {
 // 	{0.0,  0.0,  0.0},
@@ -81,11 +83,14 @@ botstate state[NUM_BOTS];
 
 void swarm_main() {
 	while (true) {
+
+		Cy_BLE_ProcessEvents();
+
 		// Gather new sensor data into own botstate
-		botstate my_state = state[0];
+		botstate my_state = state[i_am];
 
 		// IR
-		ir_read_all_until_valid(5, true);
+		ir_read_all_until_valid(5, false);
 		int nearest_ind = 0;
 		int nearest_val = 9000;
 		for (int i = 0; i < NUM_IR; i++) {
@@ -105,13 +110,77 @@ void swarm_main() {
 		// my_state.us_echo2_cm = ultrasonic_get_object_distance(PIN_ECHO2);
 		my_state.servo_ang_rad = ultrasonic_angle;
 
-		// IMU
-
 		// Save, report
-		state[0] = my_state;
+		state[i_am] = my_state;
+		printf("Self state: \r\n");
 		print_botstate(state);
 
 		// Collect other botstates over bt
+		printf("I am: %i, server is: %i\r\n", i_am, server_is);
+		if (server_is != -1) {
+			cy_ble_gatt_db_attr_handle_t handle = botstate_attrs[i_am];
+
+			printf("State data:\r\n");
+			uint8_t state_arr[STATE_LEN_BYTES];
+			for (int i = 0; i < STATE_LEN_BYTES; i++) {
+				printf("%i: ", i);
+				state_arr[i] = *((uint8_t*)(&my_state) + i);
+				printf("%i\t\t", state_arr[i]);
+				if ((i + 1) % 5 == 0) {
+					printf("\r\n");
+				}
+			}
+			printf("Data end\r\n");
+
+			printf("Attempt attr write to handle %i\r\n", *(conn_bot_ptrs[server_is]));
+			cy_stc_ble_gatts_db_attr_val_info_t attr;
+			attr.flags = CY_BLE_GATT_DB_PEER_INITIATED;
+			attr.offset = 0;
+			attr.connHandle.attId = 0;
+			attr.connHandle.bdHandle = *(conn_bot_ptrs[server_is]);
+			attr.handleValuePair.attrHandle = botstate_attrs[i_am];
+			attr.handleValuePair.value.val = state_arr;
+			attr.handleValuePair.value.len = STATE_LEN_BYTES;
+			attr.handleValuePair.value.actualLen = STATE_LEN_BYTES;
+
+			cy_en_ble_gatt_err_code_t err = Cy_BLE_GATTS_WriteAttributeValue(&attr);
+			if (err != CY_BLE_GATT_ERR_NONE) {
+				printf("GATT Error: %i\r\n", err);
+			} else {
+				printf("GATT Info: Wrote self state (index %i)\r\n", i_am);
+			}
+		}
+
+		for (int i = 0; i < NUM_BOTS; i++) {
+			if ((i != i_am) && (*(conn_bot_ptrs[i]) != 0)) {
+				cy_stc_ble_gatts_db_attr_val_info_t attr;
+				uint8_t state_arr[STATE_LEN_BYTES];
+				attr.flags = CY_BLE_GATT_DB_PEER_INITIATED;
+				attr.offset = 0;
+				attr.connHandle.attId = 0;
+				attr.connHandle.bdHandle = *(conn_bot_ptrs[i]);
+				attr.handleValuePair.attrHandle = botstate_attrs[i];
+				attr.handleValuePair.value.val = state_arr;
+				attr.handleValuePair.value.len = STATE_LEN_BYTES;
+				attr.handleValuePair.value.actualLen = STATE_LEN_BYTES;
+				cy_en_ble_gatt_err_code_t err = Cy_BLE_GATTS_ReadAttributeValue(&attr);
+				if (err != CY_BLE_GATT_ERR_NONE) {
+					printf("GATT Error: %i\r\n", err);
+				} else {
+					printf("GATT Info: Read other state (index %i)\r\n", i);
+				}
+				printf("State data:\r\n");
+				uint8_t* other_state = attr.handleValuePair.value.val;
+				for (int i = 0; i < STATE_LEN_BYTES; i++) {
+					printf("%i: ", i);
+					printf("%i\t\t", other_state[i]);
+					if ((i + 1) % 5 == 0) {
+						printf("\r\n");
+					}
+				}
+				printf("Data end\r\n");
+			}
+		}
 
 		// Pass botstates to swarm algorithm to get next position
 
@@ -206,6 +275,28 @@ int main(void) {
 					set_servo_angle(us_angle);
 				} else if (strncmp(cmdStr, "IR reboot", 9) == 0) {
 					ir_boot();
+				} else if (strncmp(cmdStr, "IR follow", 9) == 0) {
+					while (true) {
+						botstate my_state = state[i_am];
+
+						ir_read_all_until_valid(5, false);
+						int nearest_ind = 0;
+						int nearest_val = 9000;
+						for (int i = 0; i < NUM_IR; i++) {
+							
+							my_state.ir_data[i] = multi_ir_data_store[i];
+							int this_near = my_state.ir_data[i].RangeData->RangeMaxMilliMeter;
+							if ((i < 3) && (this_near < nearest_val)) {
+								nearest_ind = i;
+								nearest_val = this_near;
+							}
+						}
+						print_botstate(my_state);
+						state[i_am] = my_state;
+
+						// Aim ultrasonic at nearest ir
+						set_servo_angle(180 - (nearest_ind * 90));
+					}
 				
 				// Servo test commands
 				}  else if (strncmp(cmdStr, "servo ", 6) == 0) {

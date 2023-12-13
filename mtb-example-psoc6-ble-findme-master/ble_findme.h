@@ -62,6 +62,11 @@
 extern char btInputString[];
 extern volatile bool ALERT_BT_RX;
 
+extern volatile int i_am;
+extern volatile int server_is;
+extern volatile uint8_t* conn_bot_ptrs[NUM_BOTS];
+extern uint8_t botstate_attrs[NUM_BOTS];
+
 /******************************************************************************
  * Function prototypes
  *****************************************************************************/
