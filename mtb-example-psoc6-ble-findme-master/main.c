@@ -276,6 +276,7 @@ int main(void) {
 				} else if (strncmp(cmdStr, "IR reboot", 9) == 0) {
 					ir_boot();
 				} else if (strncmp(cmdStr, "IR follow", 9) == 0) {
+					int prev_angle = 90;
 					while (true) {
 						botstate my_state = state[i_am];
 
@@ -295,7 +296,42 @@ int main(void) {
 						state[i_am] = my_state;
 
 						// Aim ultrasonic at nearest ir
-						set_servo_angle(180 - (nearest_ind * 90));
+						
+						int angle = 180 - (nearest_ind * 90);
+						set_servo_angle(angle);	// calc angle to check
+						cyhal_system_delay_ms(1000);
+						// get the distance to the object
+						float dist1   = ultrasonic_get_object_distance(PIN_ECHO1);
+						printf("ECHO 1: %f cm\r\n", dist1);
+						if(dist1 == -1){
+							continue;
+						}
+						// float dist2   = ultrasonic_get_object_distance(PIN_ECHO2);	// hardware dependencies.
+			  			// printf("ECHO 2: %f cm\r\n", dist2);
+
+						// choose the shortest of the two and drive halfway to it
+						// float dist_cm = dist1 < dist2 ? dist1 : dist2;
+						float dist_cm = dist1;
+						
+						rotateBot(0.8, (angle-90)/2);
+						cyhal_system_delay_ms(1000);
+						printf("angle/2 : %d degrees\r\n", angle/2);
+						//prev_angle = angle;
+						set_servo_angle(90);
+						cyhal_system_delay_ms(1000);
+						
+						
+						if(dist_cm > 20){	// only travel if you have more than 20cm of space
+							if(dist_cm > 200){
+								dist_cm = 75;
+							}
+							printf("driving %f cm or %f m\r\n", dist_cm, dist_cm/100);
+							drive_line((dist_cm/100), 0.7);
+						}
+						cyhal_system_delay_ms(3000);
+						printf("IMU Readings =====================\r\n");
+						getEstPose();
+			  			
 					}
 				
 				// Servo test commands
@@ -385,24 +421,23 @@ int main(void) {
 					printf("CMD result: botstate is %i bytes\r\n", sizeof(botstate));
 
 				// Nav commands
-				// } else if(strncmp(cmdStr, "navmode", 7) == 0){
-				// 	int index = 0;
-    			// 	int waypoint_index;
-    			// 	int updateDelay = 100;  // 100 ms 10Hz
-				// 	bool path_complete = false;
-				// 	while(true){
-				// 		printf("index: %d \r\n", index);
-				// 		target_pose = square[waypoint_index];
-				// 		waypoint_index = index % 5;
-				// 		printf("estimating pose");
-				// 		getEstPose();
-				// 		printf("done estimating");
-				// 		createWaypointPath(estimated_pose);
-				// 		path_follow(estimated_pose);
-				// 		if(waypoint_complete){
-				// 			index++;
-				// 		}
-				// 	}
+				} else if(strncmp(cmdStr, "navmode", 7) == 0){
+    				int updateDelay = 100;  // 100 ms 10Hz
+					int cycles = 0;
+					while(cycles < 1000){
+						printf("estimating pose with IMU\r\n");
+						getEstPose();	// retrieves IMU data
+						printf("done estimating with IMU\r\n");
+						float angle = ang_position[2];
+						float angle_focus = 1.15*((fabsf(angle)/M_PI) * 100);
+						float base_speed = 0.6;
+						float lspeed = signf(angle) > 0 ? angle_focus*base_speed : base_speed;	// make left whl faster if leaning left
+						float rspeed = signf(angle) < 0 ? angle_focus*base_speed : base_speed;	// make right whl faster if leaning right
+						set_wheel_speeds(lspeed, rspeed);
+						cyhal_system_delay_ms(updateDelay);
+						cycles++;
+					}
+				
     				// while(!waypoint_complete){
     				//     waypoint_index = (index % QLENGTH);
     				//     // target_pose = newPose();

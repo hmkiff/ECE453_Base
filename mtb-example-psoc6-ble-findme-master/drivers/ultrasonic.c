@@ -86,14 +86,14 @@ uint32_t ultrasonic_receive(cyhal_gpio_t echopin){
     /* Read Echo PIN for High */ 
     int polls = 0;
     while((cyhal_gpio_read(echopin) == 1) && (polls < US_TIMEOUT)){polls++;}
-    if(polls < US_TIMEOUT){
-        /* Read the current timer value, which should be close to the amount of delay in ms * 10 (5000) */
-        read_val = cyhal_timer_read(&timer_obj);
-        return read_val;
-    }
-    else{
-        printf("Ultrasonic Timeout\r\n");
-        return -1;
+        if(polls < US_TIMEOUT){
+            /* Read the current timer value, which should be close to the amount of delay in ms * 10 (5000) */
+            read_val = cyhal_timer_read(&timer_obj);
+            return read_val;
+        }
+        else{
+            printf("Ultrasonic Timeout\r\n");
+            return -1;
     }
 }
 
@@ -101,8 +101,8 @@ uint32_t ultrasonic_receive(cyhal_gpio_t echopin){
 float ultrasonic_get_object_distance(cyhal_gpio_t echopin){
     uint32_t time_us = ultrasonic_receive(echopin);
     if(time_us > 0){
-    float cm_distance = 0.0343 * time_us;
-    return cm_distance;
+        float cm_distance = 0.0343 * time_us;
+        return cm_distance;
     }
     else{
         printf("Invalid Ultrasonic Time\r\n");
