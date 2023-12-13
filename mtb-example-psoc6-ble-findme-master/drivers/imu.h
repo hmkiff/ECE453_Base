@@ -27,6 +27,8 @@
 #define IMU_RW_READ_SET 0x80
 #define IMU_RW_WRITE_MASK 0x7F
 
+#define DTR 0.01745329251
+
 #define IMU_CTRL3_C 0x76
 
 /* Extern variables ----------------------------------------------------------*/
@@ -39,6 +41,8 @@ extern float lin_position[3];
  *   and are strictly related to the hardware platform used.
  *
  */
+
+float adjust_angle(float angle);
 
 void imu_orientation(void);
 cy_rslt_t imu_cs_init(void);

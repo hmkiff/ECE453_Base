@@ -43,7 +43,11 @@ static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp,
 static void platform_delay(uint32_t ms);
 static void platform_init(void);
 
-
+// Returns adjusted angle (radians) from pi to negative pi;
+float adjust_angle(float angle){
+    // Function to "unwrap" angles into the [-pi, pi) interval
+    return fmod((angle+M_PI), (2*M_PI)) - M_PI;      
+}
 /* Main Example --------------------------------------------------------------*/
 void imu_orientation(void) {
 
@@ -55,7 +59,7 @@ void imu_orientation(void) {
   
     // Convert to real units
     float acceleration_scale = 4.0 / 32768.0;  // ±4 g range
-    float angular_rate_scale = 500.0 / 32768.0; // ±500 dps range
+    float angular_rate_scale = DTR * 500.0 / 32768.0; // ±500 dps range * degrees to radian conversion
   
     float ang_val[3];
     float lin_val[3];
@@ -63,7 +67,7 @@ void imu_orientation(void) {
     char direction[3]; 
   
     //calculate position and velocity
-    float t_time = 1.0/208.0; //fixed time inmterval equal to date rate 
+    float t_time = 1.0/208.0; //fixed time interval equal to date rate 
   
   
     float ini_lin_velocity = 0.0;
@@ -76,34 +80,39 @@ void imu_orientation(void) {
     //float ang_velocity[3] = ang_val[3];
     // Array to store direction strings
     // linear[0] = linear[0] * full scale range
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 3; i++) {
         ang_val[i] = angles[i] * angular_rate_scale;
         ang_position[i] = ang_val[i] * t_time + ini_ang_position;
         
-        ini_ang_position = ang_position[i];   
+        ini_ang_position += ang_position[i];   
     }
 
 
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 3; i++) {
         lin_val[i] = linear[i] * acceleration_scale;
-        lin_velocity [i] = 9.81 * lin_val[i] * t_time + ini_lin_velocity;
-        lin_position[i] = (ini_lin_velocity * t_time) + (0.5 * 9.81 * lin_val[i] * t_time * t_time) + ini_lin_position;
+        if(i == 2){
+            lin_velocity [i] = (9.81 * lin_val[i] * t_time) + ini_lin_velocity;
+            lin_position[i] = (ini_lin_velocity * t_time) + (0.5 * 9.81 * lin_val[i] * t_time * t_time) + ini_lin_position;
+        }
+        lin_velocity [i] = (lin_val[i] * t_time) + ini_lin_velocity;
+        lin_position[i] = (ini_lin_velocity * t_time) + (0.5 * lin_val[i] * t_time * t_time) + ini_lin_position;
 
-        ini_lin_position = lin_position[i];
+
+        ini_lin_position += lin_position[i];
         ini_lin_velocity = lin_velocity[i];
     }
 
-    sprintf(tx_buffer, "Linear Velocity:\r\n"
-                       "\tx: %.5f m/s\r\n"
-                       "\ty: %.5f m/s\r\n"
-                       "\tz: %.5f m/s\r\n"
-                       "Angular Velocity:\r\n"
+    // sprintf(tx_buffer, "Linear Velocity:\r\n"
+    //                    "\tx: %.5f m/s\r\n"
+    //                    "\ty: %.5f m/s\r\n"
+    //                    "\tz: %.5f m/s\r\n"
+    //                    "Angular Velocity:\r\n"
                        
-                       "\tz: %.5f dps\r\n",
-                       lin_velocity[0], lin_velocity[1], lin_velocity[2],
-                        ang_val[2]);
+    //                    "\tz: %.5f dps\r\n",
+    //                    lin_velocity[0], lin_velocity[1], lin_velocity[2],
+    //                     ang_val[2]);
 
-    printf("%s", tx_buffer);
+    // printf("%s", tx_buffer);
 
     sprintf(tx_buffer, 
             "Linear position:\r\n"

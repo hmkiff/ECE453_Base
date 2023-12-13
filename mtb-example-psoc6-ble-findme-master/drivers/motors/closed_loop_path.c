@@ -157,12 +157,13 @@ void path_follow(struct POSE pose_msg_in){
     //    CODE HERE:  Put in formulas for anything that is 0.0, and try the "TRY THIS" variations. 
     // First set the speed with which we want the robot to approach the path
     double xdot_local_desired = -BETA*estimated_x_local;   // Use formula from Lecture
+    printf("est_x_local: %lf, xdot_local_desired: %lf \r\n", estimated_x_local, xdot_local_desired);
     // limit it to +-VMAX
     xdot_local_desired = fmin(fabsf(xdot_local_desired),fabsf(VMAX))*signf(xdot_local_desired);
     
     // Next set the desired theta_local 
     double theta_local_desired = asin((-xdot_local_desired)/VMAX);   // Use formula from Lecture
-            
+    printf("theta_local_desired: %lf, estimated_theta: %lf \r\n", theta_local_desired, estimated_theta_local);
     // Next SET SPEED OF ROBOT CENTER. 
     // G. Cook 2011 says just use constant speed all the time,
     // TRY THIS FIRST
@@ -174,7 +175,7 @@ void path_follow(struct POSE pose_msg_in){
     //   Value of 1.0 uses a straight cosine of the angle. 
     // TRY WITH AND WITHOUT THIS 
     Vc = VMAX * cos(ANGLE_FOCUS * fix_angle_pi_to_neg_pi(theta_local_desired - estimated_theta_local));
-    
+    printf("Vc: %lf, adjusted angle: %lf\r\n", Vc, fix_angle_pi_to_neg_pi(theta_local_desired - estimated_theta_local));
     // Could also limit it to only forward. 
     // TRY WITH AND WITHOUT THIS 
     if(forward_only){ 
@@ -189,7 +190,7 @@ void path_follow(struct POSE pose_msg_in){
     double speed_factor = ((K/(1+(K*estimated_x_local)))*Vc*cos(estimated_theta_local));
 
     double omega = g_factor + speed_factor;   
-    
+    printf("K: %lf, g_factor: %lf, speed_factor: %lf, omega: %lf \r\n", K, g_factor, speed_factor, omega);
     // Finally, use the "robot" object created elsewhere (member of the me439_mobile_robot_xx class) to translate omega and Vc into wheel speeds
     set_wheel_speeds_from_robot_velocities(Vc, omega);
     

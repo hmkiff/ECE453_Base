@@ -69,6 +69,14 @@
 #define ENABLE_ULTRASONIC 1
 
 #define STATE_LEN_BYTES 440
+// Shape Default Waypoints
+struct POSE square[5] = {
+	{0.0,  0.0,  0.0},
+	{0.0,  0.25, 0.0},
+	{0.25, 0.25, 0.0},
+	{0.25, 0.0,  0.0},
+	{0.0,  0.0,  0.0}	// return "home"
+};
 
 // Bot state information
 botstate state[NUM_BOTS];
@@ -362,33 +370,43 @@ int main(void) {
 					int index = 0;
     				int waypoint_index;
     				int updateDelay = 100;  // 100 ms 10Hz
-    				while(!waypoint_complete){
-    				    waypoint_index = (index % QLENGTH);
-    				    // target_pose = newPose();
-    				    getEstPose();
-    				    createWaypointPath(estimated_pose);
-    				    path_follow(estimated_pose);
-    				    if(waypoint_complete){
-    				        index++;
-    				    }
-
-    				    cyhal_system_delay_ms(updateDelay);
-						cInputIndex = 0;
-						ALERT_CONSOLE_RX = false;
-						ALERT_BT_RX = false;
-						if(strncmp(cmdStr, "waypoint ", 9) == 0){
-							waypoint_complete = false;
-							struct POSE newPose;
-							char xStr[2] = {cmdStr[9],  cmdStr[10], cmdStr[11], cmdStr[12]};
-							char yStr[2] = {cmdStr[14], cmdStr[15], cmdStr[16], cmdStr[17]};
-							double x = atof(&xStr);
-							double y = atof(&yStr);
-							newPose.x = 	x;
-							newPose.y = 	y;
-							newPose.theta =	0;
-							waypoints[waypoint_index+1] = newPose;
+					bool path_complete = false;
+					while(index < 5){
+						target_pose = square[index];
+						getEstPose();
+						createWaypointPath(estimated_pose);
+						path_follow(estimated_pose);
+						if(waypoint_complete){
+							index++;
 						}
-    				}
+					}
+    				// while(!waypoint_complete){
+    				//     waypoint_index = (index % QLENGTH);
+    				//     // target_pose = newPose();
+    				//     getEstPose();
+    				//     createWaypointPath(estimated_pose);
+    				//     path_follow(estimated_pose);
+    				//     if(waypoint_complete){
+    				//         index++;
+    				//     }
+
+    				    // cyhal_system_delay_ms(updateDelay);
+						// cInputIndex = 0;
+						// ALERT_CONSOLE_RX = false;
+						// ALERT_BT_RX = false;
+						// if(strncmp(cmdStr, "waypoint ", 9) == 0){
+						// 	waypoint_complete = false;
+						// 	struct POSE newPose;
+						// 	char xStr[2] = {cmdStr[9],  cmdStr[10], cmdStr[11], cmdStr[12]};
+						// 	char yStr[2] = {cmdStr[14], cmdStr[15], cmdStr[16], cmdStr[17]};
+						// 	double x = atof(&xStr);
+						// 	double y = atof(&yStr);
+						// 	newPose.x = 	x;
+						// 	newPose.y = 	y;
+						// 	newPose.theta =	0;
+						// 	waypoints[waypoint_index+1] = newPose;
+						// }
+    				// }
 
 				// Command fail
 				} else {

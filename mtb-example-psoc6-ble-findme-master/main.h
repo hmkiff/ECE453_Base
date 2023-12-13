@@ -26,9 +26,7 @@
 #include "drivers/io-expander.h"
 #include "drivers/LM75.h"
 #include "drivers/VL53L3CX_API_1.2.8/vl53lx_api.h"
-#include "path_gen.h"
 #include "drivers/ultrasonic.h"
-#include "drivers/motors/drive_commands.h"
 
 // Debug
 #include "debug-tools/result_tools.h"
@@ -36,5 +34,9 @@
 // Swarm
 #include "swarm/botstate.h"
 #include "swarm/swarm.h"
+
+// Motion and Navigation
+#include "drivers/motors/path_gen.h"
+#include "drivers/motors/drive_commands.h"
 
 #endif /* MAIN_H_ */
