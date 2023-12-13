@@ -63,7 +63,6 @@ bool wakeup_intr_flag = false;
 bool gpio_intr_flag = false;
 uint8 alert_level = CY_BLE_NO_ALERT;
 cy_stc_ble_conn_handle_t app_conn_handle;
-uint8_t BTN_COUNT = 0;
 
 /* ECE453 EDIT */
 cy_stc_ble_gatt_write_param_t *write_req_param;
@@ -82,7 +81,22 @@ uint8_t bot_1_addr[CY_BLE_BD_ADDR_SIZE] = {156, 19, 38, 80, 160, 0};
 uint8_t bot_2_addr[CY_BLE_BD_ADDR_SIZE] = {59, 24, 38, 80, 160, 0};
 uint8_t bot_3_addr[CY_BLE_BD_ADDR_SIZE] = {181, 16, 38, 80, 160, 0};
 uint8_t* addr_ptrs[NUM_BOTS] = {bot_0_addr, bot_1_addr, bot_2_addr, bot_3_addr};
-uint8_t conn_bot_handle = 0;
+
+uint8_t conn_bot_0_handle = 0;
+uint8_t conn_bot_1_handle = 0;
+uint8_t conn_bot_2_handle = 0;
+uint8_t conn_bot_3_handle = 0;
+volatile uint8_t* conn_bot_ptrs[NUM_BOTS] = {&conn_bot_0_handle, &conn_bot_1_handle, &conn_bot_2_handle, &conn_bot_3_handle};
+
+uint8_t botstate_attrs[NUM_BOTS] = {
+    CY_BLE_BOTSTATES_BOTSTATE_0_CHAR_HANDLE, 
+    CY_BLE_BOTSTATES_BOTSTATE_1_CHAR_HANDLE,
+    CY_BLE_BOTSTATES_BOTSTATE_2_CHAR_HANDLE,
+    CY_BLE_BOTSTATES_BOTSTATE_3_CHAR_HANDLE
+};
+
+volatile int i_am = -1;
+volatile int server_is = -1;
 
 /*******************************************************************************
 * Function Prototypes
@@ -93,7 +107,7 @@ static void stack_event_handler(uint32 event, void* eventParam);
 static void ble_start_advertisement(void);
 static void ble_ias_callback(uint32 event, void *eventParam);
 static void ble_chain_join_connect(uint8_t* addr);
-static bool addr_is_bot(uint8_t* addr);
+static int addr_is_bot(uint8_t* addr);
 
 
 /*******************************************************************************
@@ -267,10 +281,11 @@ static void stack_event_handler(uint32_t event, void* eventParam)
                 (cy_stc_ble_gapc_adv_report_param_t*) eventParam;
 
             // Is it a bot?
-            if (addr_is_bot(param->peerBdAddr)) {
+            if (addr_is_bot(param->peerBdAddr) != -1) {
                 
                 // Report the found bot
-                printf("BT Chain Info: Found bot at ");
+                server_is = addr_is_bot(param->peerBdAddr);
+                printf("BT Chain Info: Found server bot %i at ", server_is);
                 for (int j = 0; j < CY_BLE_BD_ADDR_SIZE; j++) {
                     printf("%i", param->peerBdAddr[j]);
                     if (j < CY_BLE_BD_ADDR_SIZE) {
@@ -291,10 +306,11 @@ static void stack_event_handler(uint32_t event, void* eventParam)
             cy_stc_ble_gap_connected_param_t* param = 
                 (cy_stc_ble_gap_connected_param_t*) eventParam;
             
-            bool is_bot = addr_is_bot(param->peerAddr);
+            int bot_ind = addr_is_bot(param->peerAddr);
+            bool is_bot = bot_ind != -1;
             if (is_bot && (param->status == 0)) {
                 printf("BT Chain Info: Bot GAP device connected \r\n");
-                conn_bot_handle = param->bdHandle;
+                conn_bot_ptrs[bot_ind] = param->bdHandle;
             } else if (is_bot){
                 printf("BT Chain Error: Bot GAP connection failed with status %i\r\n", param->status);
             }
@@ -310,10 +326,11 @@ static void stack_event_handler(uint32_t event, void* eventParam)
 
             if (CY_BLE_CONN_STATE_DISCONNECTED ==
                 Cy_BLE_GetConnectionState(app_conn_handle)) {
-                if (conn_bot_handle == param->bdHandle) {
-                    printf("BT Chain Info : Bot GAP device disconnected \r\n");
-                } else {
-                    //printf("BT Chain Info : Non-bot GAP device disconnected \r\n");
+                for (int i = 0; i < (NUM_BOTS - 1); i++) {
+                    if (*(conn_bot_ptrs[i]) == param->bdHandle) {
+                        printf("BT Chain Info : Bot GAP device disconnected \r\n");
+                        conn_bot_ptrs[i] = 0;
+                    }
                 }
                 ble_start_advertisement();
             }
@@ -390,7 +407,8 @@ static void stack_event_handler(uint32_t event, void* eventParam)
             printf("[INFO] : GATT write characteristic request received \r\n");
 			write_req_param = (cy_stc_ble_gatt_write_param_t*)eventParam;
 
-            if (CY_BLE_CMD_USR_CMD_CHAR_HANDLE == write_req_param->handleValPair.attrHandle) {
+            cy_ble_gatt_db_attr_handle_t handle = write_req_param->handleValPair.attrHandle;
+            if (handle == CY_BLE_CMD_USR_CMD_CHAR_HANDLE) {
                 strcpy(btInputString, write_req_param->handleValPair.value.val);
                 for (int i = 0; i < BT_MESSAGE_MAX_LEN; i++) {
                     write_req_param->handleValPair.value.val[i] = '\0';
@@ -400,9 +418,17 @@ static void stack_event_handler(uint32_t event, void* eventParam)
                 printf("\r\n");
 
                 ALERT_BT_RX = true;
+            } else if (handle == CY_BLE_BOTSTATES_BOTSTATE_0_CHAR_HANDLE) {
+                printf("[INFO] : Write to botstate 0 requested \r\n");
+            } else if (handle == CY_BLE_BOTSTATES_BOTSTATE_1_CHAR_HANDLE) {
+                printf("[INFO] : Write to botstate 1 requested \r\n");
+            } else if (handle == CY_BLE_BOTSTATES_BOTSTATE_2_CHAR_HANDLE) {
+                printf("[INFO] : Write to botstate 2 requested \r\n");
+            } else if (handle == CY_BLE_BOTSTATES_BOTSTATE_3_CHAR_HANDLE) {
+                printf("[INFO] : Write to botstate 3 requested \r\n");
             }
 			break;
-		}
+		} 
         default: {
             printf("[INFO] : BLE Event 0x%lX\r\n", (unsigned long) event);
         }
@@ -465,15 +491,19 @@ static void ble_start_advertisement(void)
 // Bot chain -----------------------------------------------------------------
 
 void ble_chain_start() {
-    // State address for input into next bot to join the chain
+    i_am = addr_is_bot(cy_ble_configPtr->deviceAddress->bdAddr);
+    server_is = i_am;
+
     printf("BT Chain Info: Address is ");
     for (int i = 0; i < CY_BLE_BD_ADDR_SIZE; i++) {
         printf("%i:", cy_ble_configPtr->deviceAddress->bdAddr[i]);
     }
-    printf("\r\n");
+    printf(", I am %i\r\n", i_am);
 }
 
 void ble_chain_join() {
+    i_am = addr_is_bot(cy_ble_configPtr->deviceAddress->bdAddr);
+
     // Start scanning for a match
     cy_en_ble_api_result_t result = Cy_BLE_GAPC_StartScan (
         CY_BLE_SCANNING_FAST,
@@ -510,7 +540,8 @@ void ble_chain_join_connect(uint8_t* addr) {
     }
 }
 
-bool addr_is_bot(uint8_t* addr) {
+// Ret -1 if no, self index if yes
+int addr_is_bot(uint8_t* addr) {
     for (int i = 0; i < NUM_BOTS; i++) {
         bool found = true;
         uint8_t* this_addr = addr_ptrs[i];
@@ -521,8 +552,8 @@ bool addr_is_bot(uint8_t* addr) {
             }
         }
         if (found) {
-            return true;
+            return i;
         }
     }
-    return false;
+    return -1;
 }
