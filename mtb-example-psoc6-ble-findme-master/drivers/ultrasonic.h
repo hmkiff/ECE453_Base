@@ -15,6 +15,7 @@
 #include "cy_pdl.h"
 #include "cyhal.h"
 #include "cybsp.h"
+#include "vector_util.h"
 
 #define PIN_TRIGGER P9_3
 #define PIN_ECHO1   P10_1 // P9_1 // 
@@ -27,7 +28,6 @@
 
 //#define M_PI    3.14159265358979323846264338327     // pi
 #define RTD     57.295779513082320876798154814105   // multiply with radian to get degrees
-#define DTR     0.01745329251994329576923690768489  // multiply with degree to get radians  
 
 #define US_TIMEOUT 1000000
 

@@ -23,13 +23,32 @@ struct ROBOT bug = {
 double d_left_previous = 0;
 double d_right_previous = 0;
 
+void rotateBot(float speed_mps, float deg_angle){
+    float rad_angle = deg_angle * DTR;
+    printf("Rotating bot to angle { degrees: %f, radians: %f }\r\n", deg_angle, rad_angle);
+    float omega = fabsf(speed_mps)*signf(rad_angle); // number of radians per (max 1.15mps * 2pi) = 7.23
+    // COMPUTE wheel speeds using equations from lecture 
+    // radius of 0 means wheels turn at same speed but opposite directions.
+    float lft_whl_spd = omega*((-WHEEL_WIDTH/2));   // radians per sec * meters = meters per sec
+    float rgt_whl_spd = omega*((WHEEL_WIDTH/2));    // max omega is 7.23, so max whl_speed is 7.23 * 0.125 = 0.903
+    
+    // COMPUTE the duration (time in seconds) for which they should turn at these speeds.
+    float duration = rad_angle/omega;   // angle in radians, omega in radians/sec returns time in seconds
+    printf("Turn for %f seconds \r\n", duration);
+
+	set_wheel_speeds(lft_whl_spd, rgt_whl_spd); 
+    // originally called drive_update() after setting speeds, but set_wheel_speeds() handles that
+    cyhal_system_delay_ms(duration*1000);
+    set_wheel_speeds(0, 0);
+}
+
 // Create a rotation matrix to translate the robot frame to the world-frame
 struct MAT2 get_rotmat_body_to_world(){
         struct MAT2 rotmat_body_to_world = {.a=cos(bug.theta), .b=-sin(bug.theta), .c=sin(bug.theta), .d=cos(bug.theta)};
         return rotmat_body_to_world;
 }
 
-// update the wheel speeds of the robot struct
+// update the wheel speeds of the robot struct and update motor duties.
 void set_wheel_speeds(double v_left, double v_right){
         
         bug.left_wheel_speed = v_left;
@@ -191,15 +210,11 @@ struct PATHSPEC specify_arc(float x0, float y0, float xf, float yf, float R, boo
     return specs;	
 }
 
- void drive_line(int distance_cm, float speed_mps){
-	int duty = speed_mps * MPStoDC;
-	set_drive_direction(1);
-	set_drive_duty(duty);
-	drive_update();
-	cyhal_system_delay_ms((distance_cm*1000)/speed_mps);
-	set_drive_duty(0);
-	set_drive_direction(0);
-	drive_update();
+ void drive_line(float distance_m, float speed_mps){
+    int dir = signf(distance_m);
+	set_wheel_speeds(dir*speed_mps, dir*speed_mps); // make sure negative distance is accepted
+	cyhal_system_delay_ms((distance_m/speed_mps)*1000);
+    set_wheel_speeds(0.0,0.0);
 	printf("Line Complete\r\n");
 }
 

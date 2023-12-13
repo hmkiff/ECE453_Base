@@ -109,7 +109,6 @@ void set_motor_speed_mps(struct MOTOR *motor, float speed){
 	int newDuty = duty;
 	if(duty > 100) {newDuty = 90;}
 	else if(duty < 0) { newDuty = 0;}
-	else{ newDuty = 0;}
 	motor->duty = (int) (newDuty);
 }
 

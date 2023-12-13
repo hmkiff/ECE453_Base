@@ -68,13 +68,13 @@
 #define ENABLE_ULTRASONIC 1
 
 // Shape Default Waypoints
-struct POSE square[5] = {
-	{0.0,  0.0,  0.0},
-	{0.0,  0.25, 0.0},
-	{0.25, 0.25, 0.0},
-	{0.25, 0.0,  0.0},
-	{0.0,  0.0,  0.0}	// return "home"
-};
+// struct POSE square[5] = {
+// 	{0.0,  0.0,  0.0},
+// 	{0.0,  0.25, 0.0},
+// 	{0.25, 0.25, 0.0},
+// 	{0.25, 0.0,  0.0},
+// 	{0.0,  0.0,  0.0}	// return "home"
+// };
 
 // Bot state information
 botstate state[NUM_BOTS];
@@ -244,21 +244,24 @@ int main(void) {
 			  	} else if (strncmp(cmdStr, "drive ", 6) == 0){
 					char sig_str[2] = {cmdStr[6], cmdStr[7]};
 					char dutyStr[3] = {cmdStr[9], cmdStr[10], cmdStr[11]};
-			  		int duty = atoi(&dutyStr);
+			  		int duty = atoi(dutyStr);
 					printf("duty: %d \r\n", duty);
 					DriveBot(sig_str, duty);
 				} else if (strncmp(cmdStr, "turn ", 5) == 0){
 					int dir = atoi(&cmdStr[5]);
 					drive_arc(15, dir);
 				} else if (strncmp(cmdStr, "rotate ", 7) == 0){
-					int angle = atoi(&cmdStr[7]);
-					drive_arc(15, angle);
-				} else if (strncmp(cmdStr, "test_motor ", 11) == 0){
-					char sig_str[2];
-			  		sig_str[0] = cmdStr[11];
-			  		int signal = atoi(&cmdStr[12]);
-					singleDrive(sig_str[0], signal); 
-
+					float angle = atof(&cmdStr[7]);
+					rotateBot(1.0, angle);
+				// } else if (strncmp(cmdStr, "test_motor ", 11) == 0){
+				// 	char sig_str[2];
+			  	// 	sig_str[0] = cmdStr[11];
+			  	// 	int signal = atoi(&cmdStr[12]);
+				// 	singleDrive(sig_str[0], signal); 
+				} else if (strncmp(cmdStr, "line ", 5) == 0){
+					float distance = atof(&cmdStr[5]);
+					drive_line(distance, 1.0);
+					
 				// IMU test commands
 				} else if (strncmp(cmdStr, "IMU read", 8) == 0) {
 					if (ENABLE_SPI) {
@@ -291,24 +294,24 @@ int main(void) {
 					printf("CMD result: botstate is %i bytes\r\n", sizeof(botstate));
 
 				// Nav commands
-				} else if(strncmp(cmdStr, "navmode", 7) == 0){
-					int index = 0;
-    				int waypoint_index;
-    				int updateDelay = 100;  // 100 ms 10Hz
-					bool path_complete = false;
-					while(true){
-						printf("index: %d \r\n", index);
-						target_pose = square[waypoint_index];
-						waypoint_index = index % 5;
-						printf("estimating pose");
-						getEstPose();
-						printf("done estimating");
-						createWaypointPath(estimated_pose);
-						path_follow(estimated_pose);
-						if(waypoint_complete){
-							index++;
-						}
-					}
+				// } else if(strncmp(cmdStr, "navmode", 7) == 0){
+				// 	int index = 0;
+    			// 	int waypoint_index;
+    			// 	int updateDelay = 100;  // 100 ms 10Hz
+				// 	bool path_complete = false;
+				// 	while(true){
+				// 		printf("index: %d \r\n", index);
+				// 		target_pose = square[waypoint_index];
+				// 		waypoint_index = index % 5;
+				// 		printf("estimating pose");
+				// 		getEstPose();
+				// 		printf("done estimating");
+				// 		createWaypointPath(estimated_pose);
+				// 		path_follow(estimated_pose);
+				// 		if(waypoint_complete){
+				// 			index++;
+				// 		}
+				// 	}
     				// while(!waypoint_complete){
     				//     waypoint_index = (index % QLENGTH);
     				//     // target_pose = newPose();

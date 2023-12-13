@@ -18,7 +18,6 @@
 
 #include "motor_functions.h"
 
-#define DTR 0.01745329
 extern struct ROBOT{
         // Position 
         struct VEC2D r_center_world;    //  Position: initialize at 0,0
@@ -57,6 +56,8 @@ struct WHL_CMD {
     float rspeed;
 };
 
+void rotateBot(float speed_mps, float deg_angle);
+
 // Create a rotation matrix to translate the robot frame to the world-frame
 struct MAT2 get_rotmat_body_to_world();
 
@@ -87,8 +88,7 @@ struct PATHSPEC specify_line(float x0, float y0, float xf, float yf);
 // specifies the arc path to follow from A to B
 struct PATHSPEC specify_arc(float x0, float y0, float xf, float yf, float R, bool way);
 
-// Tells the robot to drive in a straight line of 'distance_cm' [cm] at a 'speed_mps' [m/s]
-void drive_line(int distance_cm, float speed_mps);
+void drive_line(float distance_m, float speed_mps);
 
 // Tells the robot to drive in an arc with a 'turn_radius' at 'speed_mps' in 'direction'.
 void drive_arc(float speed_mps, int direction);

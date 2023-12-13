@@ -19,6 +19,8 @@ struct MAT2{
     double d;
 };
 
+#define DTR 0.01745329  // Degrees to Radians
+
 // returns the sign of a float
 int signf(float num);
 
